@@ -151,7 +151,40 @@ app.delete('/api/listings/:id', requireLogin, (req, res) => {
 const CITIES = ['Karachi','Lahore','Islamabad','Rawalpindi','Faisalabad','Multan','Peshawar','Quetta','Sialkot','Gujranwala','Hyderabad','Sargodha','Bahawalpur','Sukkur','Jhang','Sheikhupura','Larkana','Gujrat','Mardan','Kasur','Rahim Yar Khan','Sahiwal','Okara','Wah Cantt','Dera Ghazi Khan','Mirpur Khas','Nawabshah','Mingora','Chiniot','Kamoke','Mandi Bahauddin','Jhelum','Jacobabad','Shikarpur','Khanewal','Hafizabad','Kohat','Muzaffargarh','Khanpur','Gojra','Bahawalnagar','Muridke','Pakpattan','Khairpur','Daska','Vehari','Nowshera','Dera Ismail Khan','Chishtian','Kamalia','Kot Addu','Khuzdar','Turbat','Hub','Sibi','Zhob','Gwadar','Abbottabad','Mansehra','Swat','Charsadda','Swabi','Mardan','Haripur','Attock','Chakwal','Bhakkar','Layyah','Toba Tek Singh','Narowal','Sialkot','Zafarwal','Pasrur'];
 app.get('/api/cities', (req, res) => res.json([...new Set(CITIES)].sort()));
 
-const CATEGORIES = ['Mobiles','Vehicles','Electronics','Home & Furniture','Fashion','Property','Jobs','Services','Animals','Books & Hobbies'];
+const CATEGORIES = [
+  'Mobiles',
+  'Tablets',
+  'Mobile Accessories',
+  'Cars',
+  'Cars Accessories',
+  'Spare Parts',
+  'Buses, Vans & Trucks',
+  'Rickshaw & Chingchi',
+  'Boats',
+  'Motorcycles',
+  'Scooters',
+  'Bicycles',
+  'Property for Sale',
+  'Property for Rent',
+  'Electronics',
+  'Home Appliances',
+  'Computers & Laptops',
+  'TV & Audio',
+  'Cameras',
+  'Furniture & Home Decor',
+  'Fashion & Beauty',
+  'Clothes',
+  'Watches & Jewelry',
+  'Animals',
+  'Dogs & Cats',
+  'Birds & Hens',
+  'Jobs',
+  'Services',
+  'Business & Industrial',
+  'Agriculture',
+  'Books, Sports & Hobbies',
+  'Kids & Babies'
+];
 app.get('/api/categories', (req, res) => res.json(CATEGORIES));
 
 app.listen(PORT, () => console.log(`Shopping Hub running on port ${PORT}`));

@@ -36,7 +36,22 @@ function renderCats() {
 }
 
 function catIcon(c) {
-  return { 'Mobiles': '📱', 'Vehicles': '🚗', 'Electronics': '💻', 'Home & Furniture': '🛋️', 'Fashion': '👗', 'Property': '🏠', 'Jobs': '💼', 'Services': '🔧', 'Animals': '🐾', 'Books & Hobbies': '📚' }[c] || '📦';
+  const icons = {
+    'Mobiles': '📱', 'Tablets': '📲', 'Mobile Accessories': '🎧',
+    'Cars': '🚗', 'Cars Accessories': '🔧', 'Spare Parts': '⚙️',
+    'Buses, Vans & Trucks': '🚌', 'Rickshaw & Chingchi': '🛺', 'Boats': '⛵',
+    'Motorcycles': '🏍️', 'Scooters': '🛵', 'Bicycles': '🚲',
+    'Property for Sale': '🏠', 'Property for Rent': '🏘️',
+    'Electronics': '💻', 'Home Appliances': '🧺', 'Computers & Laptops': '💻',
+    'TV & Audio': '📺', 'Cameras': '📷',
+    'Furniture & Home Decor': '🛋️', 'Fashion & Beauty': '💄',
+    'Clothes': '👗', 'Watches & Jewelry': '⌚',
+    'Animals': '🐾', 'Dogs & Cats': '🐱', 'Birds & Hens': '🐔',
+    'Jobs': '💼', 'Services': '🛠️',
+    'Business & Industrial': '🏭', 'Agriculture': '🌾',
+    'Books, Sports & Hobbies': '📚', 'Kids & Babies': '🧸'
+  };
+  return icons[c] || '📦';
 }
 
 function setCat(c) { state.filters.category = c; renderCats(); loadListings(); }
@@ -75,11 +90,17 @@ async function loadListings() {
   g.innerHTML = list.length ? list.map(cardHTML).join('') : `<div class="empty"><span class="big">📭</span>No ads yet — be the first to post! 🎉</div>`;
 }
 
+function fmtPrice(p) {
+  p = Number(p);
+  if (p >= 10000000) return 'Rs ' + (p / 10000000).toFixed(2).replace(/\.00$/, '') + ' Crore';
+  if (p >= 100000) return 'Rs ' + (p / 100000).toFixed(2).replace(/\.00$/, '') + ' Lac';
+  return 'Rs ' + p.toLocaleString();
+}
 function cardHTML(l) {
   const img = l.images && l.images[0] ? `<img src="${l.images[0]}" loading="lazy">` : `<div class="noimg">📦</div>`;
   return `<div class="card" onclick="showDetail(${l.id})">${img}
     <div class="card-body"><span class="tag">${catIcon(l.category)} ${esc(l.category)}</span>
-    <div class="card-price">Rs ${Number(l.price).toLocaleString()}</div>
+    <div class="card-price">${fmtPrice(l.price)}</div>
     <div class="card-title">${esc(l.title)}</div>
     <div class="card-meta"><span>📍 ${esc(l.city)}</span><span>${timeAgo(l.created_at)}</span></div></div></div>`;
 }
@@ -94,7 +115,7 @@ async function showDetail(id) {
     </div>
     <div class="detail-info">
       <span class="tag">${catIcon(l.category)} ${esc(l.category)}</span>
-      <div class="detail-price">Rs ${Number(l.price).toLocaleString()}</div>
+      <div class="detail-price">${fmtPrice(l.price)}</div>
       <div class="detail-title">${esc(l.title)}</div>
       <div class="detail-meta">📍 ${esc(l.city)}${l.area ? ', ' + esc(l.area) : ''}</div>
       <div class="detail-meta">🕒 ${timeAgo(l.created_at)}</div>
@@ -192,7 +213,7 @@ async function showMyAds() {
   document.getElementById('main').innerHTML = `
     <h2 class="section">My Ads (${list.length})</h2>
     ${list.length ? list.map(l => `<div class="myad-row">
-      <div><b>${esc(l.title)}</b><br><span style="color:var(--muted);font-size:13px">Rs ${Number(l.price).toLocaleString()} • 📍 ${esc(l.city)}</span></div>
+      <div><b>${esc(l.title)}</b><br><span style="color:var(--muted);font-size:13px">${fmtPrice(l.price)} • 📍 ${esc(l.city)}</span></div>
       <div><button class="btn" onclick="showDetail(${l.id})" style="margin-right:8px">View</button>
       <button class="del-btn" onclick="delAd(${l.id})">Delete</button></div></div>`).join('')
     : `<div class="empty"><span class="big">📭</span>You have no ads yet.<br><a onclick="showPostAd()" style="cursor:pointer;color:var(--teal-d);font-weight:700">Post your first ad now! 🚀</a></div>`}`;

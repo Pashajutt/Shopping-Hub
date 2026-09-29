@@ -1,4 +1,4 @@
-let state = { user: null, categories: [], cities: [], listings: [], view: 'home', filters: {} };
+let state = { user: null, categories: [], cities: [], listings: [], view: 'home', filters: {}, authTab: 'login' };
 
 async function api(path, opts = {}) {
   const r = await fetch(path, { headers: { 'Content-Type': 'application/json' }, ...opts });
@@ -18,35 +18,47 @@ async function init() {
 function renderUserArea() {
   const el = document.getElementById('userArea');
   if (state.user) {
-    el.innerHTML = `<span>👋 ${esc(state.user.name)}</span>
-      <button class="btn btn-outline" onclick="showMyAds()">My Ads</button>
+    el.innerHTML = `<span class="hello">👋 ${esc(state.user.name)}</span>
+      <button class="btn" onclick="showMyAds()">My Ads</button>
       <button class="btn btn-sell" onclick="showPostAd()">+ SELL</button>
-      <button class="btn btn-outline" onclick="logout()">Logout</button>`;
+      <button class="btn" onclick="logout()">Logout</button>`;
   } else {
-    el.innerHTML = `<button class="btn btn-outline" onclick="showLogin()">Login</button>
+    el.innerHTML = `<button class="btn" onclick="showAuth('login')">🔐 Login</button>
+      <button class="btn btn-teal" onclick="showAuth('signup')">📝 Sign Up</button>
       <button class="btn btn-sell" onclick="showPostAd()">+ SELL</button>`;
   }
 }
 
 function renderCats() {
   const el = document.getElementById('catNav');
-  el.innerHTML = `<button class="${!state.filters.category ? 'active' : ''}" onclick="setCat('')">All</button>` +
-    state.categories.map(c => `<button class="${state.filters.category === c ? 'active' : ''}" onclick="setCat('${c}')">${c}</button>`).join('');
+  el.innerHTML = `<button class="${!state.filters.category ? 'active' : ''}" onclick="setCat('')">🌍 All</button>` +
+    state.categories.map(c => `<button class="${state.filters.category === c ? 'active' : ''}" onclick="setCat('${c}')">${catIcon(c)} ${c}</button>`).join('');
+}
+
+function catIcon(c) {
+  return { 'Mobiles': '📱', 'Vehicles': '🚗', 'Electronics': '💻', 'Home & Furniture': '🛋️', 'Fashion': '👗', 'Property': '🏠', 'Jobs': '💼', 'Services': '🔧', 'Animals': '🐾', 'Books & Hobbies': '📚' }[c] || '📦';
 }
 
 function setCat(c) { state.filters.category = c; renderCats(); loadListings(); }
-function goHome() { state.filters = {}; state.view = 'home'; document.getElementById('searchInput').value = ''; renderCats(); showHome(); }
+function goHome() { state.filters = {}; document.getElementById('searchInput').value = ''; renderCats(); showHome(); }
 function doSearch() { state.filters.q = document.getElementById('searchInput').value.trim(); loadListings(); }
 
 async function showHome() {
   state.view = 'home';
   document.getElementById('main').innerHTML = `
-    <div class="hero"><h1>🛒 Shopping Hub</h1><p>Buy & sell everything across Pakistan</p></div>
-    <div class="filters">
-      <select id="fCity" onchange="filterCity(this.value)"><option value="">All Pakistan</option>${state.cities.map(c => `<option ${state.filters.city === c ? 'selected' : ''}>${c}</option>`).join('')}</select>
+    <div class="hero">
+      <h1>Sell anything. <span class="hl">Find everything.</span></h1>
+      <p>Pakistan's friendliest marketplace — from Karachi to Khyber, your bazaar is now online. 🇵🇰</p>
+      <div class="hero-cta">
+        <button class="btn btn-sell" onclick="showPostAd()">📢 Post FREE Ad</button>
+        ${state.user ? '' : '<button class="btn btn-magenta" onclick="showAuth(\'signup\')">🚀 Join Free</button>'}
+      </div>
     </div>
-    <h2 class="section">Fresh Recommendations</h2>
-    <div class="grid" id="grid"><div class="empty">Loading...</div></div>`;
+    <div class="filters">
+      <select id="fCity" onchange="filterCity(this.value)"><option value="">📍 All Pakistan</option>${state.cities.map(c => `<option ${state.filters.city === c ? 'selected' : ''}>${c}</option>`).join('')}</select>
+    </div>
+    <h2 class="section">Fresh Picks For You</h2>
+    <div class="grid" id="grid"><div class="empty"><span class="big">⏳</span>Loading...</div></div>`;
   loadListings();
 }
 
@@ -61,32 +73,33 @@ async function loadListings() {
   state.listings = list;
   const g = document.getElementById('grid');
   if (!g) return;
-  g.innerHTML = list.length ? list.map(cardHTML).join('') : `<div class="empty">No ads found. Be the first to post! 📢</div>`;
+  g.innerHTML = list.length ? list.map(cardHTML).join('') : `<div class="empty"><span class="big">📭</span>No ads yet — be the first to post! 🎉</div>`;
 }
 
 function cardHTML(l) {
   const img = l.images && l.images[0] ? `<img src="${l.images[0]}" loading="lazy">` : `<div class="noimg">📦</div>`;
   return `<div class="card" onclick="showDetail(${l.id})">${img}
-    <div class="card-body"><div class="card-price">Rs ${Number(l.price).toLocaleString()}</div>
+    <div class="card-body"><span class="tag">${catIcon(l.category)} ${esc(l.category)}</span>
+    <div class="card-price">Rs ${Number(l.price).toLocaleString()}</div>
     <div class="card-title">${esc(l.title)}</div>
-    <div class="card-meta"><span>${esc(l.city)}</span><span>${timeAgo(l.created_at)}</span></div></div></div>`;
+    <div class="card-meta"><span>📍 ${esc(l.city)}</span><span>${timeAgo(l.created_at)}</span></div></div></div>`;
 }
 
 async function showDetail(id) {
   const l = await api('/api/listings/' + id);
-  const img = l.images && l.images[0] ? `<img class="detail-img" src="${l.images[0]}">` : `<div class="noimg" style="height:300px">📦</div>`;
+  const img = l.images && l.images[0] ? `<img class="detail-img" src="${l.images[0]}">` : `<div class="noimg" style="height:300px;border:2px solid var(--line);border-radius:18px">📦</div>`;
   document.getElementById('main').innerHTML = `
-    <button class="btn btn-outline" onclick="showHome()" style="margin-bottom:16px">← Back</button>
+    <button class="btn" onclick="showHome()" style="margin-bottom:16px">← Back to bazaar</button>
     <div class="detail"><div>${img}
-      <div class="form-card" style="max-width:none;margin-top:16px"><h3>Description</h3><p style="margin-top:8px;white-space:pre-wrap">${esc(l.description || 'No description')}</p></div>
+      <div class="form-card" style="max-width:none;margin-top:16px"><h3>📝 Description</h3><p style="margin-top:8px;white-space:pre-wrap">${esc(l.description || 'No description provided.')}</p></div>
     </div>
     <div class="detail-info">
+      <span class="tag">${catIcon(l.category)} ${esc(l.category)}</span>
       <div class="detail-price">Rs ${Number(l.price).toLocaleString()}</div>
       <div class="detail-title">${esc(l.title)}</div>
-      <div class="detail-meta">📂 ${esc(l.category)}</div>
       <div class="detail-meta">📍 ${esc(l.city)}${l.area ? ', ' + esc(l.area) : ''}</div>
       <div class="detail-meta">🕒 ${timeAgo(l.created_at)}</div>
-      <div class="seller-box"><h3>Seller</h3>
+      <div class="seller-box"><h3>🤝 Meet the Seller</h3>
         <div class="detail-meta">👤 ${esc(l.seller_name)}</div>
         ${l.phone ? `<div class="detail-meta">📞 ${esc(l.phone)}</div>` : ''}
         ${l.seller_phone && l.seller_phone !== l.phone ? `<div class="detail-meta">📞 ${esc(l.seller_phone)}</div>` : ''}
@@ -95,35 +108,42 @@ async function showDetail(id) {
   window.scrollTo(0, 0);
 }
 
-function showLogin() {
-  document.getElementById('main').innerHTML = `
-  <div class="form-card"><h2>🔐 Login</h2>
+/* ---- Auth with Login/Signup tabs ---- */
+function showAuth(tab) {
+  state.authTab = tab || 'login';
+  const t = state.authTab;
+  const loginForm = `
     <label>Email</label><input id="liEmail" type="email" placeholder="you@email.com">
     <label>Password</label><input id="liPass" type="password" placeholder="••••••">
     <div class="err" id="liErr"></div>
-    <button class="btn btn-solid" onclick="doLogin()">Login</button>
-    <div class="form-link">No account? <a onclick="showSignup()">Sign up</a></div>
+    <button class="btn btn-solid" onclick="doLogin()">🔐 Login</button>`;
+  const signupForm = `
+    <label>Full Name</label><input id="suName" placeholder="Your name">
+    <label>Email</label><input id="suEmail" type="email" placeholder="you@email.com">
+    <label>Phone</label><input id="suPhone" placeholder="03xx-xxxxxxx">
+    <label>Password</label><input id="suPass" type="password" placeholder="Choose a password">
+    <div class="err" id="suErr"></div>
+    <button class="btn btn-teal" onclick="doSignup()">🚀 Create Free Account</button>`;
+  document.getElementById('main').innerHTML = `
+  <div class="form-card">
+    <h2>Welcome to Shopping Hub! 🛍️</h2>
+    <div class="form-sub">Login or create a free account to start selling</div>
+    <div class="auth-switch">
+      <button class="${t === 'login' ? 'on' : ''}" onclick="showAuth('login')">🔐 Login</button>
+      <button class="${t === 'signup' ? 'on' : ''}" onclick="showAuth('signup')">📝 Sign Up</button>
+    </div>
+    ${t === 'login' ? loginForm : signupForm}
   </div>`;
+  window.scrollTo(0, 0);
 }
+function showLogin() { showAuth('login'); }
+function showSignup() { showAuth('signup'); }
 
 async function doLogin() {
   try {
     const d = await api('/api/login', { method: 'POST', body: JSON.stringify({ email: v('liEmail'), password: v('liPass') }) });
     state.user = { name: d.name }; renderUserArea(); showHome();
   } catch (e) { document.getElementById('liErr').textContent = e.message; }
-}
-
-function showSignup() {
-  document.getElementById('main').innerHTML = `
-  <div class="form-card"><h2>📝 Sign Up</h2>
-    <label>Name</label><input id="suName" placeholder="Your name">
-    <label>Email</label><input id="suEmail" type="email" placeholder="you@email.com">
-    <label>Phone</label><input id="suPhone" placeholder="03xx-xxxxxxx">
-    <label>Password</label><input id="suPass" type="password" placeholder="••••••">
-    <div class="err" id="suErr"></div>
-    <button class="btn btn-solid" onclick="doSignup()">Create Account</button>
-    <div class="form-link">Have an account? <a onclick="showLogin()">Login</a></div>
-  </div>`;
 }
 
 async function doSignup() {
@@ -136,20 +156,22 @@ async function doSignup() {
 async function logout() { await api('/api/logout', { method: 'POST' }); state.user = null; renderUserArea(); showHome(); }
 
 function showPostAd() {
-  if (!state.user) { showLogin(); return; }
+  if (!state.user) { showAuth('signup'); return; }
   document.getElementById('main').innerHTML = `
   <div class="form-card"><h2>📢 Post Your Ad</h2>
-    <label>Title *</label><input id="adTitle" placeholder="e.g. iPhone 13 Pro Max">
+    <div class="form-sub">It's FREE and takes 1 minute!</div>
+    <label>Title *</label><input id="adTitle" placeholder="e.g. iPhone 13 Pro Max — urgent sale">
     <label>Price (Rs) *</label><input id="adPrice" type="number" placeholder="e.g. 250000">
     <label>Category *</label><select id="adCat">${state.categories.map(c => `<option>${c}</option>`).join('')}</select>
     <label>City *</label><select id="adCity">${state.cities.map(c => `<option>${c}</option>`).join('')}</select>
     <label>Area</label><input id="adArea" placeholder="e.g. DHA Phase 5">
     <label>Phone</label><input id="adPhone" placeholder="03xx-xxxxxxx">
-    <label>Description</label><textarea id="adDesc" placeholder="Condition, features..."></textarea>
+    <label>Description</label><textarea id="adDesc" placeholder="Condition, features, reason for selling..."></textarea>
     <label>Photos (max 5)</label><input id="adImgs" type="file" accept="image/*" multiple>
     <div class="err" id="adErr"></div>
-    <button class="btn btn-solid" onclick="doPostAd()">Post Ad</button>
+    <button class="btn btn-sell" onclick="doPostAd()">🚀 Publish Ad</button>
   </div>`;
+  window.scrollTo(0, 0);
 }
 
 async function doPostAd() {
@@ -171,10 +193,10 @@ async function showMyAds() {
   document.getElementById('main').innerHTML = `
     <h2 class="section">My Ads (${list.length})</h2>
     ${list.length ? list.map(l => `<div class="myad-row">
-      <div><b>${esc(l.title)}</b><br><span style="color:#777;font-size:13px">Rs ${Number(l.price).toLocaleString()} • ${esc(l.city)}</span></div>
-      <div><button class="btn btn-outline" onclick="showDetail(${l.id})" style="margin-right:8px">View</button>
+      <div><b>${esc(l.title)}</b><br><span style="color:var(--muted);font-size:13px">Rs ${Number(l.price).toLocaleString()} • 📍 ${esc(l.city)}</span></div>
+      <div><button class="btn" onclick="showDetail(${l.id})" style="margin-right:8px">View</button>
       <button class="del-btn" onclick="delAd(${l.id})">Delete</button></div></div>`).join('')
-    : `<div class="empty">You have no ads yet. <a onclick="showPostAd()" style="cursor:pointer;color:#00565e;font-weight:600">Post one now!</a></div>`}`;
+    : `<div class="empty"><span class="big">📭</span>You have no ads yet.<br><a onclick="showPostAd()" style="cursor:pointer;color:var(--teal-d);font-weight:700">Post your first ad now! 🚀</a></div>`}`;
 }
 
 async function delAd(id) {
@@ -183,7 +205,7 @@ async function delAd(id) {
   showMyAds();
 }
 
-function v(id) { return document.getElementById(id).value.trim(); }
+function v(id) { const el = document.getElementById(id); return el ? el.value.trim() : ''; }
 function esc(s) { return String(s || '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
 function timeAgo(d) {
   const s = (Date.now() - new Date(d + 'Z').getTime()) / 1000;

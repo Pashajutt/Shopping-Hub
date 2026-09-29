@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: shopping-hub
+    env: node
+    buildCommand: npm install
+    startCommand: npm start
+    disk:
+      name: data
+      mountPath: /opt/render/project/src/uploads
+      sizeGB: 1

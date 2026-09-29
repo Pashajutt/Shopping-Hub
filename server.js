@@ -1,5 +1,6 @@
 const express = require('express');
 const session = require('express-session');
+const SqliteStore = require('./sqlite-store');
 const bcrypt = require('bcryptjs');
 const multer = require('multer');
 const path = require('path');
@@ -74,6 +75,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(session({
   secret: SESSION_SECRET,
+  store: new SqliteStore(db),
   resave: false,
   saveUninitialized: false,
   cookie: {

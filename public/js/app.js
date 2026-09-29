@@ -302,16 +302,19 @@ function showAuth(tab) {
     <label>Password</label><input id="liPass" type="password" placeholder="••••••">
     <div class="err" id="liErr"></div>
     <button class="btn btn-solid" onclick="doLogin()">🔐 Login</button>
-    <div class="form-link"><a onclick="showForgot()">Forgot password? 🔑</a></div>`;
+    <div class="form-link"><a onclick="showForgot()">Forgot password? 🔑</a></div>
+    <div style="text-align:center;margin:14px 0;color:var(--muted)">— or —</div>
+    <button class="btn" onclick="signInWithGoogle()" style="background:#fff">🔵 Continue with Google</button>`;
   const signupForm = `
     <label>Full Name</label><input id="suName" placeholder="Your name">
     <label>Email</label><input id="suEmail" type="email" placeholder="you@email.com">
-    <div style="display:flex;gap:8px;margin-top:8px"><button class="btn btn-teal" onclick="sendOtp('suEmail','signup')" style="margin:0;flex:none;padding:10px 16px;font-size:13px">📧 Send OTP</button></div>
-    <label>Email OTP *</label><input id="suOtp" placeholder="6-digit code from email" maxlength="6" inputmode="numeric">
     <label>Phone</label><input id="suPhone" placeholder="03xx-xxxxxxx">
     <label>Password</label><input id="suPass" type="password" placeholder="Choose a password">
     <div class="err" id="suErr"></div>
-    <button class="btn btn-teal" onclick="doSignup()">🚀 Verify & Create Account</button>`;
+    <button class="btn btn-teal" onclick="doSignup()">🚀 Create Free Account</button>
+    <div class="form-sub" style="margin-top:10px">📲 Want faster login? Use the <b>Phone</b> tab for SMS OTP login!</div>
+    <div style="text-align:center;margin:14px 0;color:var(--muted)">— or —</div>
+    <button class="btn" onclick="signInWithGoogle()" style="background:#fff">🔵 Sign up with Google</button>`;
   document.getElementById('main').innerHTML = `
   <div class="form-card">
     <h2>Welcome to Shopping Hub! 🛍️</h2>
@@ -353,46 +356,79 @@ async function doLogin() {
 
 async function doSignup() {
   try {
-    const d = await api('/api/signup', { method: 'POST', body: JSON.stringify({ name: v('suName'), email: v('suEmail'), password: v('suPass'), phone: v('suPhone'), otp: v('suOtp') }) });
+    const d = await api('/api/signup', { method: 'POST', body: JSON.stringify({ name: v('suName'), email: v('suEmail'), password: v('suPass'), phone: v('suPhone') }) });
     state.user = { name: d.name }; renderUserArea(); showHome();
   } catch (e) { document.getElementById('suErr').textContent = e.message; }
-}
-
-async function sendOtp(emailField, purpose) {
-  const email = v(emailField);
-  if (!email || !email.includes('@')) return alert('Please enter a valid email first 📧');
-  try {
-    await api('/api/auth/send-otp', { method: 'POST', body: JSON.stringify({ email, purpose }) });
-    alert('OTP sent to ' + email + '! Check your inbox 📧 (valid 10 min)');
-  } catch (e) { alert(e.message); }
 }
 
 function showForgot() {
   document.getElementById('main').innerHTML = `
   <div class="form-card">
     <h2>🔑 Forgot Password</h2>
-    <div class="form-sub">Enter your email to get a reset code</div>
-    <label>Email</label><input id="fpEmail" type="email" placeholder="you@email.com">
-    <div style="display:flex;gap:8px;margin-top:8px"><button class="btn btn-teal" onclick="sendOtp('fpEmail','reset')" style="margin:0;flex:none;padding:10px 16px;font-size:13px">📧 Send Reset Code</button></div>
-    <label>Reset Code *</label><input id="fpOtp" placeholder="6-digit code" maxlength="6" inputmode="numeric">
-    <label>New Password</label><input id="fpPass" type="password" placeholder="New password (min 6 chars)">
-    <div class="err" id="fpErr"></div>
-    <button class="btn btn-solid" onclick="doReset()">✅ Reset Password</button>
+    <div class="form-sub">Verify your phone via SMS, then set a new password</div>
+    <div id="fpStep1">
+      <label>Mobile Number</label>
+      <div style="display:flex;gap:8px"><input value="+92" disabled style="width:60px;text-align:center"><input id="fpNum" placeholder="3001234567" inputmode="numeric" style="flex:1"></div>
+      <div id="recaptcha-fp" style="margin:12px 0"></div>
+      <div class="err" id="fpErr"></div>
+      <button class="btn btn-teal" onclick="sendFpOtp()">📲 Send SMS Code</button>
+    </div>
+    <div id="fpStep2" style="display:none">
+      <label>SMS Code *</label><input id="fpOtp" placeholder="6-digit SMS code" maxlength="6" inputmode="numeric">
+      <label>New Password</label><input id="fpPass" type="password" placeholder="New password (min 6 chars)">
+      <div class="err" id="fpErr2"></div>
+      <button class="btn btn-solid" onclick="doFpReset()">✅ Reset Password</button>
+    </div>
     <div class="form-link"><a onclick="showAuth('login')">← Back to Login</a></div>
   </div>`;
   window.scrollTo(0, 0);
+  initFpRecaptcha();
 }
 
-async function doReset() {
+let _fpConfirm = null;
+function initFpRecaptcha() {
+  if (!FIREBASE_READY) { document.getElementById('fpErr').textContent = 'Phone reset not configured yet.'; return; }
   try {
-    await api('/api/auth/reset-password', { method: 'POST', body: JSON.stringify({ email: v('fpEmail'), otp: v('fpOtp'), newPassword: v('fpPass') }) });
-    alert('Password reset! Please login with your new password ✅');
-    showAuth('login');
+    _fbApp = firebase.apps.length ? firebase.app() : firebase.initializeApp(FIREBASE_CONFIG);
+    window._recaptchaFp = new firebase.auth.RecaptchaVerifier('recaptcha-fp', { size: 'normal' });
+  } catch (e) { document.getElementById('fpErr').textContent = 'Init failed: ' + e.message; }
+}
+async function sendFpOtp() {
+  const num = '+92' + v('fpNum').replace(/\D/g, '').replace(/^0/, '');
+  if (num.length < 13) { document.getElementById('fpErr').textContent = 'Enter a valid mobile number'; return; }
+  try {
+    _fpConfirm = await _fbApp.auth().signInWithPhoneNumber(num, window._recaptchaFp);
+    document.getElementById('fpStep1').style.display = 'none';
+    document.getElementById('fpStep2').style.display = 'block';
   } catch (e) { document.getElementById('fpErr').textContent = e.message; }
+}
+async function doFpReset() {
+  try {
+    const cred = await _fpConfirm.confirm(v('fpOtp'));
+    const token = await cred.user.getIdToken();
+    await api('/api/auth/reset-password-phone', { method: 'POST', body: JSON.stringify({ token, newPassword: v('fpPass') }) });
+    alert('Password reset! Please login ✅');
+    showAuth('login');
+  } catch (e) { document.getElementById('fpErr2').textContent = e.message || 'Reset failed'; }
 }
 
 // ===== Phone OTP via Firebase =====
 let _fbApp = null, _fbConfirm = null;
+function fbApp() {
+  if (!FIREBASE_READY) return null;
+  return firebase.apps.length ? firebase.app() : firebase.initializeApp(FIREBASE_CONFIG);
+}
+async function signInWithGoogle() {
+  if (!FIREBASE_READY) return alert('Google login not configured yet. Please use email signup.');
+  try {
+    const app = fbApp();
+    const provider = new firebase.auth.GoogleAuthProvider();
+    const cred = await app.auth().signInWithPopup(provider);
+    const token = await cred.user.getIdToken();
+    const d = await api('/api/auth/google', { method: 'POST', body: JSON.stringify({ token }) });
+    state.user = { name: d.name }; renderUserArea(); showHome();
+  } catch (e) { alert('Google sign-in failed: ' + (e.message || e)); }
+}
 function initPhoneAuth() {
   if (!FIREBASE_READY) {
     document.getElementById('phErr').textContent = 'Phone login not configured yet. Please use email.';

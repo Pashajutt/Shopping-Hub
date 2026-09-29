@@ -172,10 +172,8 @@ function checkOtp(email, otp, purpose) {
 
 // --- Auth API ---
 app.post('/api/signup', rateLimit, (req, res) => {
-  const { name, email, password, phone, otp } = req.body;
+  const { name, email, password, phone } = req.body;
   if (!name || !email || !password) return res.status(400).json({ error: 'Name, email and password required' });
-  const err = checkOtp(email, otp, 'signup');
-  if (err) return res.status(400).json({ error: err });
   try {
     const hash = bcrypt.hashSync(password, 10);
     const r = db.prepare('INSERT INTO users (name, email, password, phone) VALUES (?, ?, ?, ?)')
@@ -202,7 +200,28 @@ app.post('/api/auth/reset-password', rateLimit, (req, res) => {
   res.json({ ok: true, msg: 'Password reset! Please login.' });
 });
 
-// Phone login via Firebase ID token (verified against Google certs)
+// Reset password via verified phone (Firebase SMS)
+app.post('/api/auth/reset-password-phone', rateLimit, async (req, res) => {
+  const { token, newPassword } = req.body;
+  if (!token || !newPassword) return res.status(400).json({ error: 'Token and new password required' });
+  if (String(newPassword).length < 6) return res.status(400).json({ error: 'Password must be at least 6 characters' });
+  try {
+    const certs = await getFbCerts();
+    const decoded = jwt.decode(token, { complete: true });
+    const kid = decoded && decoded.header && decoded.header.kid;
+    if (!kid || !certs[kid]) return res.status(401).json({ error: 'Invalid token' });
+    const projectId = process.env.FIREBASE_PROJECT_ID || '';
+    const payload = jwt.verify(token, certs[kid], { algorithms: ['RS256'] });
+    if (projectId && payload.aud !== projectId) return res.status(401).json({ error: 'Wrong project' });
+    if (!payload.phone_number) return res.status(401).json({ error: 'No phone in token' });
+    const hash = bcrypt.hashSync(newPassword, 10);
+    const r = db.prepare('UPDATE users SET password = ? WHERE phone = ?').run(hash, payload.phone_number);
+    if (r.changes === 0) return res.status(400).json({ error: 'No account found with this phone number' });
+    res.json({ ok: true });
+  } catch (e) {
+    res.status(401).json({ error: 'Verification failed' });
+  }
+});
 const jwt = require('jsonwebtoken');
 let _fbCerts = null, _fbCertsAt = 0;
 async function getFbCerts() {
@@ -211,6 +230,34 @@ async function getFbCerts() {
   _fbCerts = await r.json(); _fbCertsAt = Date.now();
   return _fbCerts;
 }
+// Google sign-in via Firebase ID token
+app.post('/api/auth/google', rateLimit, async (req, res) => {
+  const { token } = req.body;
+  if (!token) return res.status(400).json({ error: 'Token required' });
+  try {
+    const certs = await getFbCerts();
+    const decoded = jwt.decode(token, { complete: true });
+    const kid = decoded && decoded.header && decoded.header.kid;
+    if (!kid || !certs[kid]) return res.status(401).json({ error: 'Invalid token' });
+    const projectId = process.env.FIREBASE_PROJECT_ID || '';
+    const payload = jwt.verify(token, certs[kid], { algorithms: ['RS256'] });
+    if (projectId && payload.aud !== projectId) return res.status(401).json({ error: 'Wrong project' });
+    if (!payload.email) return res.status(401).json({ error: 'No email in token' });
+    const email = payload.email.toLowerCase();
+    const nm = payload.name || email.split('@')[0];
+    let user = db.prepare('SELECT * FROM users WHERE email = ?').get(email);
+    if (!user) {
+      const r = db.prepare('INSERT INTO users (name, email, password, phone) VALUES (?, ?, ?, ?)')
+        .run(nm, email, bcrypt.hashSync(Math.random().toString(36), 10), '');
+      user = { id: Number(r.lastInsertRowid), name: nm };
+    }
+    req.session.userId = user.id;
+    req.session.userName = user.name;
+    res.json({ ok: true, name: user.name });
+  } catch (e) {
+    res.status(401).json({ error: 'Google verification failed' });
+  }
+});
 app.post('/api/auth/phone', rateLimit, async (req, res) => {
   const { token, name } = req.body;
   if (!token) return res.status(400).json({ error: 'Token required' });

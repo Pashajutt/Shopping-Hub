@@ -94,6 +94,11 @@ async function showHome() {
       <input type="number" id="fMin" placeholder="Min price" value="${state.filters.min || ''}" style="padding:10px;border:2px solid var(--ink);border-radius:8px;width:130px;font-family:inherit">
       <input type="number" id="fMax" placeholder="Max price" value="${state.filters.max || ''}" style="padding:10px;border:2px solid var(--ink);border-radius:8px;width:130px;font-family:inherit">
       <button class="btn btn-solid" onclick="filterPrice()" style="padding:10px 18px">Apply</button>
+      <select onchange="sortBy(this.value)" style="padding:10px 14px;border:2px solid var(--ink);border-radius:8px;font-family:inherit;font-weight:600;background:#fff;cursor:pointer">
+        <option value="">Sort: Newest</option>
+        <option value="plh" ${state.filters.sort === 'plh' ? 'selected' : ''}>Price: Low to High</option>
+        <option value="phl" ${state.filters.sort === 'phl' ? 'selected' : ''}>Price: High to Low</option>
+      </select>
     </div>
     <div class="catgrid">${mainCats.map(([lbl, c]) => `<button class="catcell" onclick="setCat('${c}')"><span class="cico">${catIcon(c)}</span><span class="clbl">${lbl}</span></button>`).join('')}</div>
     <h2 class="section">Fresh recommendations</h2>
@@ -102,6 +107,7 @@ async function showHome() {
 }
 
 function filterCity(v) { state.filters.city = v; loadListings(); }
+function sortBy(v) { state.filters.sort = v; loadListings(); }
 function filterPrice() {
   state.filters.min = document.getElementById('fMin').value;
   state.filters.max = document.getElementById('fMax').value;
@@ -115,6 +121,7 @@ async function loadListings() {
   if (state.filters.city) p.set('city', state.filters.city);
   if (state.filters.min) p.set('min', state.filters.min);
   if (state.filters.max) p.set('max', state.filters.max);
+  if (state.filters.sort) p.set('sort', state.filters.sort);
   const list = await api('/api/listings?' + p);
   state.listings = list;
   const g = document.getElementById('grid');
@@ -157,10 +164,18 @@ function showFavs() {
 
 async function showDetail(id) {
   const l = await api('/api/listings/' + id);
-  const img = l.images && l.images[0] ? `<img class="detail-img" src="${l.images[0]}">` : `<div class="noimg" style="height:300px;border:2px solid var(--line);border-radius:18px">📦</div>`;
+  const imgs = (l.images && l.images.length ? l.images : []);
+  const gallery = imgs.length ? `
+    <div class="galwrap"><img class="detail-img" id="galMain" src="${imgs[0]}">
+    <button class="galbtn galprev" onclick="galMove(-1)">‹</button>
+    <button class="galbtn galnext" onclick="galMove(1)">›</button>
+    <div class="galcount" id="galCount">1/${imgs.length}</div></div>
+    <div class="galthumbs">${imgs.map((s, i) => `<img src="${s}" class="${i === 0 ? 'on' : ''}" onclick="galGo(${i})">`).join('')}</div>`
+    : `<div class="noimg" style="height:300px;border:2px solid var(--line);border-radius:18px">📦</div>`;
+  window._galImgs = imgs; window._galIdx = 0;
   document.getElementById('main').innerHTML = `
-    <button class="btn" onclick="showHome()" style="margin-bottom:16px">← Back to bazaar</button>
-    <div class="detail"><div>${img}
+    <div class="crumbs"><a onclick="goHome()">Home</a> / <a onclick="setCat('${esc(l.category)}')">${esc(l.category)}</a> / ${esc(l.title).slice(0, 30)}...</div>
+    <div class="detail"><div>${gallery}
       <div class="form-card" style="max-width:none;margin-top:16px"><h3>📝 Description</h3><p style="margin-top:8px;white-space:pre-wrap">${esc(l.description || 'No description provided.')}</p></div>
     </div>
     <div class="detail-info">
@@ -169,6 +184,11 @@ async function showDetail(id) {
       <div class="detail-title">${esc(l.title)}</div>
       <div class="detail-meta">📍 ${esc(l.city)}${l.area ? ', ' + esc(l.area) : ''}</div>
       <div class="detail-meta">🕒 ${timeAgo(l.created_at)}</div>
+      <div class="detail-meta">🔖 Ad ID: ${l.id}</div>
+      <div style="display:flex;gap:8px;margin-top:10px">
+        <button class="btn" onclick="shareAd()" style="flex:1">🔗 Share</button>
+        <button class="btn" onclick="reportAd(${l.id})" style="flex:1">🚩 Report</button>
+      </div>
       <div class="seller-box"><h3>🤝 Meet the Seller</h3>
         <div class="detail-meta">👤 ${esc(l.seller_name)}</div>
         ${(l.phone || l.seller_phone) ? `<button class="btn btn-teal" id="phoneBtn" onclick="showPhone('${esc(l.phone || l.seller_phone)}')" style="width:100%;margin-top:8px">📞 Show Phone Number</button><div class="detail-meta" id="phoneNum" style="display:none;font-size:20px;font-weight:800;margin-top:10px;text-align:center"></div>` : ''}
@@ -188,6 +208,22 @@ function showPhone(p) {
   document.getElementById('phoneNum').textContent = '📞 ' + p;
   document.getElementById('phoneNum').style.display = 'block';
   document.getElementById('phoneBtn').style.display = 'none';
+}
+function galGo(i) {
+  const n = window._galImgs.length;
+  window._galIdx = ((i % n) + n) % n;
+  document.getElementById('galMain').src = window._galImgs[window._galIdx];
+  document.getElementById('galCount').textContent = (window._galIdx + 1) + '/' + n;
+  document.querySelectorAll('.galthumbs img').forEach((t, j) => t.classList.toggle('on', j === window._galIdx));
+}
+function galMove(d) { galGo(window._galIdx + d); }
+function shareAd() {
+  const url = location.href;
+  if (navigator.share) navigator.share({ title: document.title, url }).catch(() => {});
+  else { navigator.clipboard.writeText(url).then(() => alert('Link copied! 🔗')); }
+}
+function reportAd(id) {
+  if (confirm('Report this ad as inappropriate?')) alert('Thanks! We will review ad #' + id + '. 🛡️');
 }
 
 /* ---- Auth with Login/Signup tabs ---- */

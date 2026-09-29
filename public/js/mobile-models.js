@@ -190,4 +190,79 @@ const MOBILE_BRANDS = {
 "Sparx": [
 "Sparx Neo 5","Sparx Neo 6","Sparx Neo 7","Sparx Neo 8","Sparx Neo X","Sparx Ultra 11","Sparx Edge 20"
 ]
+"HTC": [
+"HTC One M7","HTC One M8","HTC One M9","HTC 10","HTC U11","HTC U12 Plus","HTC Desire 10","HTC Desire 12","HTC Desire 19","HTC Desire 20","HTC Desire 21","HTC Wildfire","HTC Wildfire E","HTC U20","HTC Exodus"
+],
+"BlackBerry": [
+"BlackBerry Bold 9700","BlackBerry Bold 9780","BlackBerry Curve 8520","BlackBerry Curve 9300","BlackBerry Torch 9800","BlackBerry Z10","BlackBerry Q10","BlackBerry Z30","BlackBerry Passport","BlackBerry Classic","BlackBerry Priv","BlackBerry KeyOne","BlackBerry Key2","BlackBerry Motion"
+],
+"Meizu": [
+"Meizu M5","Meizu M6","Meizu M8","Meizu 16","Meizu 16s","Meizu 17","Meizu 18","Meizu 20","Meizu Note 9","Meizu X8"
+],
+"Alcatel": [
+"Alcatel 1","Alcatel 1B","Alcatel 1S","Alcatel 3","Alcatel 3L","Alcatel 3X","Alcatel 5","Alcatel Pop 4","Alcatel U5","Alcatel Idol 4"
+],
+"Gionee": [
+"Gionee S11","Gionee M7","Gionee A1","Gionee P7","Gionee F103","Gionee Marathon M5","Gionee Elife E8"
+],
+"Lava": [
+"Lava Z2","Lava Z4","Lava Z6","Lava Agni","Lava Agni 2","Lava Blaze","Lava Blaze 2","Lava Yuva","Lava Iris"
+],
+"Micromax": [
+"Micromax Canvas","Micromax Bolt","Micromax Unite","Micromax IN 1","Micromax IN Note 1","Micromax IN 2b","Micromax Canvas Infinity"
+],
+"Doogee": [
+"Doogee S40","Doogee S88","Doogee S96","Doogee N20","Doogee X95","Doogee S61","Doogee V20"
+],
+"Ulefone": [
+"Ulefone Armor 7","Ulefone Armor 8","Ulefone Armor 12","Ulefone Note 14","Ulefone Power Armor 14"
+],
+"Blackview": [
+"Blackview A80","Blackview A100","Blackview BV4900","Blackview BV6300","Blackview BV8800","Blackview Oscal C80"
+],
+"Cubot": [
+"Cubot X19","Cubot P40","Cubot Note 20","Cubot KingKong","Cubot C30","Cubot X50"
+],
+"Oukitel": [
+"Oukitel WP5","Oukitel WP8","Oukitel WP15","Oukitel C21","Oukitel K9","Oukitel WP19"
+],
+"Dcode": [
+"Dcode Cygnal 1","Dcode Cygnal 2","Dcode Bold 2","Dcode Neon"
+],
+"Vgotel": [
+"Vgotel New 5","Vgotel New 7","Vgotel New 9","Vgotel Note 23"
+],
+"Calme": [
+"Calme Spark S11","Calme Spark S22","Calme Hero C5"
+],
+"XIAOMI Mix": [
+"Mi Mix","Mi Mix 2","Mi Mix 2S","Mi Mix 3 5G","Xiaomi Mix 4","Xiaomi Mix Fold","Xiaomi Mix Fold 2","Xiaomi Mix Fold 3"
+],
+"Red Magic": [
+"Red Magic 3","Red Magic 5G","Red Magic 6","Red Magic 7","Red Magic 8 Pro","Red Magic 9 Pro","Red Magic 10 Pro"
+],
+"ROG Extra": [
+"ROG Phone 2","ROG Phone 3 Strix"
+],
+"Cat": [
+"Cat S42","Cat S52","Cat S62","Cat B35","Cat B40"
+],
+"Energizer": [
+"Energizer Power Max P16K","Energizer Ultimate U620S","Energizer Hardcase H591S"
+],
+"Philips": [
+"Philips Xenium E106","Philips E172","Philips S396"
+],
+"Panasonic": [
+"Panasonic Eluga","Panasonic P101","Panasonic Eluga Ray"
+],
+"Sharp": [
+"Sharp Aquos R3","Sharp Aquos R5G","Sharp Aquos Sense 4"
+],
+"Fujitsu": [
+"Fujitsu Arrows 5G","Fujitsu Arrows NX9"
+],
+"Kyocera": [
+"Kyocera DuraForce Pro","Kyocera Brigadier"
+]
 };

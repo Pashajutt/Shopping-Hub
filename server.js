@@ -109,10 +109,70 @@ const requireLogin = (req, res, next) => {
   next();
 };
 
+// --- Email OTP system ---
+const nodemailer = require('nodemailer');
+const otpStore = new Map(); // email -> { otp, expires, purpose, attempts }
+
+function getMailer() {
+  if (!process.env.GMAIL_USER || !process.env.GMAIL_APP_PASSWORD) return null;
+  return nodemailer.createTransport({
+    service: 'gmail',
+    auth: { user: process.env.GMAIL_USER, pass: process.env.GMAIL_APP_PASSWORD }
+  });
+}
+
+function makeOtp() { return String(Math.floor(100000 + Math.random() * 900000)); }
+
+// Send OTP to email for signup or password reset
+app.post('/api/auth/send-otp', rateLimit, async (req, res) => {
+  const { email, purpose } = req.body;
+  if (!email || !['signup', 'reset'].includes(purpose))
+    return res.status(400).json({ error: 'Valid email and purpose required' });
+  const em = email.trim().toLowerCase();
+  if (purpose === 'signup') {
+    const exists = db.prepare('SELECT id FROM users WHERE email = ?').get(em);
+    if (exists) return res.status(400).json({ error: 'Email already registered. Please login.' });
+  } else {
+    const exists = db.prepare('SELECT id FROM users WHERE email = ?').get(em);
+    if (!exists) return res.status(400).json({ error: 'No account found with this email.' });
+  }
+  const mailer = getMailer();
+  if (!mailer) return res.status(500).json({ error: 'Email service not configured. Contact admin.' });
+  const otp = makeOtp();
+  otpStore.set(em + ':' + purpose, { otp, expires: Date.now() + 10 * 60 * 1000, attempts: 0 });
+  const subject = purpose === 'signup' ? 'Shopping Hub — Verify your email' : 'Shopping Hub — Password reset code';
+  try {
+    await mailer.sendMail({
+      from: `"Shopping Hub" <${process.env.GMAIL_USER}>`,
+      to: em,
+      subject,
+      text: `Your Shopping Hub verification code is: ${otp}\n\nThis code expires in 10 minutes. If you didn't request this, please ignore.`
+    });
+    res.json({ ok: true, msg: 'OTP sent to your email' });
+  } catch (e) {
+    res.status(500).json({ error: 'Failed to send OTP email' });
+  }
+});
+
+// Verify OTP
+function checkOtp(email, otp, purpose) {
+  const key = email.trim().toLowerCase() + ':' + purpose;
+  const rec = otpStore.get(key);
+  if (!rec) return 'No OTP requested. Please send OTP first.';
+  if (Date.now() > rec.expires) { otpStore.delete(key); return 'OTP expired. Please request a new one.'; }
+  rec.attempts++;
+  if (rec.attempts > 5) { otpStore.delete(key); return 'Too many wrong attempts. Request a new OTP.'; }
+  if (rec.otp !== String(otp).trim()) return 'Wrong OTP. Try again.';
+  otpStore.delete(key);
+  return null;
+}
+
 // --- Auth API ---
 app.post('/api/signup', rateLimit, (req, res) => {
-  const { name, email, password, phone } = req.body;
+  const { name, email, password, phone, otp } = req.body;
   if (!name || !email || !password) return res.status(400).json({ error: 'Name, email and password required' });
+  const err = checkOtp(email, otp, 'signup');
+  if (err) return res.status(400).json({ error: err });
   try {
     const hash = bcrypt.hashSync(password, 10);
     const r = db.prepare('INSERT INTO users (name, email, password, phone) VALUES (?, ?, ?, ?)')
@@ -123,6 +183,56 @@ app.post('/api/signup', rateLimit, (req, res) => {
   } catch (e) {
     if (String(e.message).includes('UNIQUE')) return res.status(400).json({ error: 'Email already registered' });
     res.status(500).json({ error: 'Signup failed' });
+  }
+});
+
+// Forgot password: reset with OTP
+app.post('/api/auth/reset-password', rateLimit, (req, res) => {
+  const { email, otp, newPassword } = req.body;
+  if (!email || !otp || !newPassword) return res.status(400).json({ error: 'Email, OTP and new password required' });
+  if (String(newPassword).length < 6) return res.status(400).json({ error: 'Password must be at least 6 characters' });
+  const err = checkOtp(email, otp, 'reset');
+  if (err) return res.status(400).json({ error: err });
+  const hash = bcrypt.hashSync(newPassword, 10);
+  const r = db.prepare('UPDATE users SET password = ? WHERE email = ?').run(hash, email.trim().toLowerCase());
+  if (r.changes === 0) return res.status(400).json({ error: 'No account found' });
+  res.json({ ok: true, msg: 'Password reset! Please login.' });
+});
+
+// Phone login via Firebase ID token (verified against Google certs)
+const jwt = require('jsonwebtoken');
+let _fbCerts = null, _fbCertsAt = 0;
+async function getFbCerts() {
+  if (_fbCerts && Date.now() - _fbCertsAt < 3600e3) return _fbCerts;
+  const r = await fetch('https://www.googleapis.com/robot/v1/metadata/x509/securetoken@system.gserviceaccount.com');
+  _fbCerts = await r.json(); _fbCertsAt = Date.now();
+  return _fbCerts;
+}
+app.post('/api/auth/phone', rateLimit, async (req, res) => {
+  const { token, name } = req.body;
+  if (!token) return res.status(400).json({ error: 'Token required' });
+  try {
+    const certs = await getFbCerts();
+    const decoded = jwt.decode(token, { complete: true });
+    const kid = decoded && decoded.header && decoded.header.kid;
+    if (!kid || !certs[kid]) return res.status(401).json({ error: 'Invalid token' });
+    const projectId = process.env.FIREBASE_PROJECT_ID || '';
+    const payload = jwt.verify(token, certs[kid], { algorithms: ['RS256'] });
+    if (projectId && payload.aud !== projectId) return res.status(401).json({ error: 'Wrong project' });
+    if (!payload.phone_number) return res.status(401).json({ error: 'No phone in token' });
+    const phone = payload.phone_number;
+    let user = db.prepare('SELECT * FROM users WHERE phone = ?').get(phone);
+    if (!user) {
+      const nm = (name || 'User').trim() || 'User';
+      const r = db.prepare('INSERT INTO users (name, email, password, phone) VALUES (?, ?, ?, ?)')
+        .run(nm, `phone_${Date.now()}@phone.local`, bcrypt.hashSync(Math.random().toString(36), 10), phone);
+      user = { id: Number(r.lastInsertRowid), name: nm };
+    }
+    req.session.userId = user.id;
+    req.session.userName = user.name;
+    res.json({ ok: true, name: user.name });
+  } catch (e) {
+    res.status(401).json({ error: 'Phone verification failed' });
   }
 });
 

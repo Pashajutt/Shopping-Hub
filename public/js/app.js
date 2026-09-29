@@ -270,14 +270,17 @@ function showAuth(tab) {
     <label>Email</label><input id="liEmail" type="email" placeholder="you@email.com">
     <label>Password</label><input id="liPass" type="password" placeholder="••••••">
     <div class="err" id="liErr"></div>
-    <button class="btn btn-solid" onclick="doLogin()">🔐 Login</button>`;
+    <button class="btn btn-solid" onclick="doLogin()">🔐 Login</button>
+    <div class="form-link"><a onclick="showForgot()">Forgot password? 🔑</a></div>`;
   const signupForm = `
     <label>Full Name</label><input id="suName" placeholder="Your name">
     <label>Email</label><input id="suEmail" type="email" placeholder="you@email.com">
+    <div style="display:flex;gap:8px;margin-top:8px"><button class="btn btn-teal" onclick="sendOtp('suEmail','signup')" style="margin:0;flex:none;padding:10px 16px;font-size:13px">📧 Send OTP</button></div>
+    <label>Email OTP *</label><input id="suOtp" placeholder="6-digit code from email" maxlength="6" inputmode="numeric">
     <label>Phone</label><input id="suPhone" placeholder="03xx-xxxxxxx">
     <label>Password</label><input id="suPass" type="password" placeholder="Choose a password">
     <div class="err" id="suErr"></div>
-    <button class="btn btn-teal" onclick="doSignup()">🚀 Create Free Account</button>`;
+    <button class="btn btn-teal" onclick="doSignup()">🚀 Verify & Create Account</button>`;
   document.getElementById('main').innerHTML = `
   <div class="form-card">
     <h2>Welcome to Shopping Hub! 🛍️</h2>
@@ -285,11 +288,28 @@ function showAuth(tab) {
     <div class="auth-switch">
       <button class="${t === 'login' ? 'on' : ''}" onclick="showAuth('login')">🔐 Login</button>
       <button class="${t === 'signup' ? 'on' : ''}" onclick="showAuth('signup')">📝 Sign Up</button>
+      <button class="${t === 'phone' ? 'on' : ''}" onclick="showAuth('phone')">📲 Phone</button>
     </div>
-    ${t === 'login' ? loginForm : signupForm}
+    ${t === 'login' ? loginForm : t === 'phone' ? phoneForm : signupForm}
   </div>`;
   window.scrollTo(0, 0);
+  if (t === 'phone') initPhoneAuth();
 }
+const phoneForm = `
+  <div id="phoneStep1">
+    <label>Mobile Number</label>
+    <div style="display:flex;gap:8px"><input value="+92" disabled style="width:60px;text-align:center"><input id="phNum" placeholder="3001234567" inputmode="numeric" style="flex:1"></div>
+    <div id="recaptcha-box" style="margin:12px 0"></div>
+    <div class="err" id="phErr"></div>
+    <button class="btn btn-teal" onclick="sendPhoneOtp()">📲 Send OTP via SMS</button>
+  </div>
+  <div id="phoneStep2" style="display:none">
+    <label>SMS Code *</label><input id="phOtp" placeholder="6-digit SMS code" maxlength="6" inputmode="numeric">
+    <label>Your Name</label><input id="phName" placeholder="Your name">
+    <div class="err" id="phErr2"></div>
+    <button class="btn btn-teal" onclick="verifyPhoneOtp()">✅ Verify & Login</button>
+    <div class="form-link"><a onclick="document.getElementById('phoneStep2').style.display='none';document.getElementById('phoneStep1').style.display='block'">← Change number</a></div>
+  </div>`;
 function showLogin() { showAuth('login'); }
 function showSignup() { showAuth('signup'); }
 
@@ -302,9 +322,72 @@ async function doLogin() {
 
 async function doSignup() {
   try {
-    const d = await api('/api/signup', { method: 'POST', body: JSON.stringify({ name: v('suName'), email: v('suEmail'), password: v('suPass'), phone: v('suPhone') }) });
+    const d = await api('/api/signup', { method: 'POST', body: JSON.stringify({ name: v('suName'), email: v('suEmail'), password: v('suPass'), phone: v('suPhone'), otp: v('suOtp') }) });
     state.user = { name: d.name }; renderUserArea(); showHome();
   } catch (e) { document.getElementById('suErr').textContent = e.message; }
+}
+
+async function sendOtp(emailField, purpose) {
+  const email = v(emailField);
+  if (!email || !email.includes('@')) return alert('Please enter a valid email first 📧');
+  try {
+    await api('/api/auth/send-otp', { method: 'POST', body: JSON.stringify({ email, purpose }) });
+    alert('OTP sent to ' + email + '! Check your inbox 📧 (valid 10 min)');
+  } catch (e) { alert(e.message); }
+}
+
+function showForgot() {
+  document.getElementById('main').innerHTML = `
+  <div class="form-card">
+    <h2>🔑 Forgot Password</h2>
+    <div class="form-sub">Enter your email to get a reset code</div>
+    <label>Email</label><input id="fpEmail" type="email" placeholder="you@email.com">
+    <div style="display:flex;gap:8px;margin-top:8px"><button class="btn btn-teal" onclick="sendOtp('fpEmail','reset')" style="margin:0;flex:none;padding:10px 16px;font-size:13px">📧 Send Reset Code</button></div>
+    <label>Reset Code *</label><input id="fpOtp" placeholder="6-digit code" maxlength="6" inputmode="numeric">
+    <label>New Password</label><input id="fpPass" type="password" placeholder="New password (min 6 chars)">
+    <div class="err" id="fpErr"></div>
+    <button class="btn btn-solid" onclick="doReset()">✅ Reset Password</button>
+    <div class="form-link"><a onclick="showAuth('login')">← Back to Login</a></div>
+  </div>`;
+  window.scrollTo(0, 0);
+}
+
+async function doReset() {
+  try {
+    await api('/api/auth/reset-password', { method: 'POST', body: JSON.stringify({ email: v('fpEmail'), otp: v('fpOtp'), newPassword: v('fpPass') }) });
+    alert('Password reset! Please login with your new password ✅');
+    showAuth('login');
+  } catch (e) { document.getElementById('fpErr').textContent = e.message; }
+}
+
+// ===== Phone OTP via Firebase =====
+let _fbApp = null, _fbConfirm = null;
+function initPhoneAuth() {
+  if (!FIREBASE_READY) {
+    document.getElementById('phErr').textContent = 'Phone login not configured yet. Please use email.';
+    return;
+  }
+  try {
+    _fbApp = firebase.apps.length ? firebase.app() : firebase.initializeApp(FIREBASE_CONFIG);
+    window._recaptcha = new firebase.auth.RecaptchaVerifier('recaptcha-box', { size: 'normal' });
+  } catch (e) { document.getElementById('phErr').textContent = 'Phone auth init failed: ' + e.message; }
+}
+async function sendPhoneOtp() {
+  const num = '+92' + v('phNum').replace(/\D/g, '').replace(/^0/, '');
+  if (num.length < 13) { document.getElementById('phErr').textContent = 'Enter a valid mobile number'; return; }
+  try {
+    _fbConfirm = await _fbApp.auth().signInWithPhoneNumber(num, window._recaptcha);
+    document.getElementById('phoneStep1').style.display = 'none';
+    document.getElementById('phoneStep2').style.display = 'block';
+  } catch (e) { document.getElementById('phErr').textContent = e.message; }
+}
+async function verifyPhoneOtp() {
+  try {
+    const cred = await _fbConfirm.confirm(v('phOtp'));
+    const token = await cred.user.getIdToken();
+    const d = await api('/api/auth/phone', { method: 'POST', body: JSON.stringify({ token, name: v('phName') }) });
+    state.user = { name: d.name }; renderUserArea(); showHome();
+  } catch (e) { document.getElementById('phErr2').textContent = e.message || 'Wrong code'; }
 }
 
 async function logout() { await api('/api/logout', { method: 'POST' }); state.user = null; renderUserArea(); showHome(); }

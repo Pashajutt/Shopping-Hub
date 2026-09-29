@@ -1,6 +1,6 @@
 // ===== Firebase config for Phone OTP + Google login =====
 const FIREBASE_CONFIG = {
-  apiKey: "AIzaSyBoVFWHq48b9dNNjIBSsLLUcYidVWqKjng",
+  apiKey: "AIzaSyBoVFWHq48b9dNNjIBSslLUcYidVWqKjng",
   authDomain: "shopping-hub-50f8a.firebaseapp.com",
   projectId: "shopping-hub-50f8a",
   storageBucket: "shopping-hub-50f8a.firebasestorage.app",

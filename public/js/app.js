@@ -182,7 +182,11 @@ function showPostAd() {
     <div class="form-sub">It's FREE and takes 1 minute!</div>
     <label>Title *</label><input id="adTitle" placeholder="e.g. iPhone 13 Pro Max — urgent sale">
     <label>Price (Rs) *</label><input id="adPrice" type="number" placeholder="e.g. 250000">
-    <label>Category *</label><select id="adCat">${state.categories.map(c => `<option>${c}</option>`).join('')}</select>
+    <label>Category *</label><select id="adCat" onchange="onCatChange()">${state.categories.map(c => `<option>${c}</option>`).join('')}</select>
+    <div id="mobilePicker" style="display:none">
+      <label>Brand *</label><select id="adBrand" onchange="onBrandChange()"><option value="">-- Select Brand --</option>${Object.keys(MOBILE_BRANDS).map(b => `<option>${b}</option>`).join('')}</select>
+      <label>Model *</label><select id="adModel" onchange="onModelChange()"><option value="">-- Select Model --</option></select>
+    </div>
     <label>City *</label><select id="adCity">${state.cities.map(c => `<option>${c}</option>`).join('')}</select>
     <label>Area</label><input id="adArea" placeholder="e.g. DHA Phase 5">
     <label>Phone</label><input id="adPhone" placeholder="03xx-xxxxxxx">
@@ -194,7 +198,24 @@ function showPostAd() {
   window.scrollTo(0, 0);
 }
 
+function onCatChange() {
+  const show = document.getElementById('adCat').value === 'Mobiles';
+  document.getElementById('mobilePicker').style.display = show ? 'block' : 'none';
+}
+function onBrandChange() {
+  const b = document.getElementById('adBrand').value;
+  const m = document.getElementById('adModel');
+  m.innerHTML = '<option value="">-- Select Model --</option>' + ((MOBILE_BRANDS[b] || []).map(x => `<option>${x}</option>`).join(''));
+}
+function onModelChange() {
+  const b = document.getElementById('adBrand').value, m = document.getElementById('adModel').value;
+  if (b && m) document.getElementById('adTitle').value = b + ' ' + m;
+}
 async function doPostAd() {
+  if (document.getElementById('adCat').value === 'Mobiles') {
+    if (!document.getElementById('adBrand').value) return alert('Please select a brand 📱');
+    if (!document.getElementById('adModel').value) return alert('Please select a model 📱');
+  }
   const fd = new FormData();
   fd.append('title', v('adTitle')); fd.append('price', v('adPrice'));
   fd.append('category', v('adCat')); fd.append('city', v('adCity'));

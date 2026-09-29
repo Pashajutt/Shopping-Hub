@@ -83,5 +83,25 @@ h2.section{font-size:21px;margin:20px 0 14px;font-weight:800;letter-spacing:-.3p
 .empty{text-align:center;padding:70px 20px;color:var(--muted);font-size:16px}
 .empty .big{font-size:56px;display:block;margin-bottom:12px}
 
-footer{margin-top:44px;background:var(--ink);color:#fff;padding:30px 18px;text-align:center}
+footer{margin-top:44px;background:var(--ink);color:#fff;padding:30px 18px 100px;text-align:center}
 footer p{opacity:.75;font-size:14px;margin-top:8px}
+
+/* ===== OLX-app style bottom navigation ===== */
+.bottomnav{position:fixed;bottom:0;left:0;right:0;z-index:200;background:#fff;border-top:1px solid var(--line);display:flex;justify-content:space-around;align-items:center;padding:8px 4px calc(8px + env(safe-area-inset-bottom));box-shadow:0 -2px 12px rgba(0,47,52,.08)}
+.bnav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;border:none;background:none;cursor:pointer;font-family:inherit;font-size:11px;font-weight:600;color:#5a6a6a;padding:4px}
+.bnav-item .ico{font-size:22px}
+.bnav-item.active{color:var(--ink);font-weight:800}
+.bnav-sell{flex:1;display:flex;justify-content:center}
+.bnav-sellbtn{width:58px;height:58px;border-radius:50%;border:none;cursor:pointer;font-size:28px;font-weight:800;color:var(--ink);background:conic-gradient(from 0deg,#ffce32,#4ecdc4,#ffce32);display:flex;align-items:center;justify-content:center;box-shadow:0 3px 10px rgba(0,0,0,.18);margin-top:-24px}
+.bnav-sellbtn:active{transform:scale(.94)}
+
+/* ===== Category icon grid (OLX app home) ===== */
+.catgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:18px 0}
+@media(min-width:700px){.catgrid{grid-template-columns:repeat(8,1fr)}}
+.catcell{border:none;background:none;cursor:pointer;font-family:inherit;display:flex;flex-direction:column;align-items:center;gap:7px;padding:6px 2px}
+.catcell .cico{width:64px;height:64px;border-radius:16px;background:#eef4f4;display:flex;align-items:center;justify-content:center;font-size:32px;transition:.15s}
+.catcell:hover .cico{background:#e0efef;transform:scale(1.06)}
+.catcell .clbl{font-size:12px;font-weight:600;color:var(--ink);text-align:center;line-height:1.25}
+.locbar{display:flex;align-items:center;gap:6px;font-weight:800;font-size:16px;margin:14px 0 4px;cursor:pointer}
+.locbar select{border:none;background:none;font-weight:800;font-size:16px;font-family:inherit;color:var(--ink);cursor:pointer;max-width:230px}
+body{padding-bottom:76px}

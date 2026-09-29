@@ -25,6 +25,13 @@
   <nav class="catnav" id="catNav"></nav>
 </header>
 <main id="main"></main>
+<nav class="bottomnav" id="bottomNav">
+  <button class="bnav-item active" id="bn-home" onclick="navGo('home')"><span class="ico">🏠</span>Home</button>
+  <button class="bnav-item" id="bn-chat" onclick="navGo('chat')"><span class="ico">💬</span>Chat</button>
+  <div class="bnav-sell"><button class="bnav-sellbtn" onclick="showPostAd()" title="Sell">+</button></div>
+  <button class="bnav-item" id="bn-myads" onclick="navGo('myads')"><span class="ico">📋</span>My Ads</button>
+  <button class="bnav-item" id="bn-account" onclick="navGo('account')"><span class="ico">👤</span>Account</button>
+</nav>
 <footer>
   <div class="foot-inner">
     <p><b style="opacity:1">SHOPPING HUB</b></p>

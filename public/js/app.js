@@ -58,19 +58,38 @@ function setCat(c) { state.filters.category = c; renderCats(); loadListings(); }
 function goHome() { state.filters = {}; document.getElementById('searchInput').value = ''; renderCats(); showHome(); }
 function doSearch() { state.filters.q = document.getElementById('searchInput').value.trim(); loadListings(); }
 
+function navGo(v) {
+  document.querySelectorAll('.bnav-item').forEach(b => b.classList.remove('active'));
+  const map = { home: 'bn-home', chat: 'bn-chat', myads: 'bn-myads', account: 'bn-account' };
+  if (map[v]) document.getElementById(map[v]).classList.add('active');
+  if (v === 'home') goHome();
+  else if (v === 'chat') showChat();
+  else if (v === 'myads') showMyAds();
+  else if (v === 'account') showAccount();
+}
+function showChat() {
+  state.view = 'chat';
+  document.getElementById('main').innerHTML = `<div class="empty"><span class="big">💬</span><b>Chat</b><br>Buyer-seller chat is coming soon! 🚀<br><span style="font-size:13px">For now, call the seller directly from any ad. 📞</span></div>`;
+  window.scrollTo(0, 0);
+}
+function showAccount() {
+  if (state.user) {
+    state.view = 'account';
+    document.getElementById('main').innerHTML = `<div class="form-card"><h2>👤 My Account</h2>
+      <p style="text-align:center;margin:14px 0"><b>${esc(state.user.name)}</b><br><span style="color:var(--muted)">${esc(state.user.email)}</span></p>
+      <button class="btn" onclick="showMyAds()">📋 My Ads</button>
+      <button class="btn" onclick="logout()" style="margin-top:10px;border-color:#c62828;color:#c62828">🚪 Logout</button></div>`;
+  } else showAuth('login');
+  window.scrollTo(0, 0);
+}
 async function showHome() {
   state.view = 'home';
+  document.querySelectorAll('.bnav-item').forEach(b => b.classList.remove('active'));
+  document.getElementById('bn-home').classList.add('active');
+  const mainCats = [['Mobiles','Mobiles'],['Vehicles','Cars'],['Property For Sale','Property for Sale'],['Property For Rent','Property for Rent'],['Services','Services'],['Jobs','Jobs'],['Animals','Animals'],['Furniture & Home','Furniture & Home Decor']];
   document.getElementById('main').innerHTML = `
-    <div class="hero">
-      <h1>Buy and sell <span class="hl">for free</span> anywhere in Pakistan</h1>
-      <p>From mobiles to cars to furniture — find amazing deals near you. 🇵🇰</p>
-      <div class="hero-cta">
-        <button class="btn btn-sell" onclick="showPostAd()">+ SELL NOW</button>
-      </div>
-    </div>
-    <div class="filters">
-      <select id="fCity" onchange="filterCity(this.value)"><option value="">📍 All Pakistan</option>${state.cities.map(c => `<option ${state.filters.city === c ? 'selected' : ''}>${c}</option>`).join('')}</select>
-    </div>
+    <div class="locbar">📍 <select onchange="filterCity(this.value)"><option value="">All Pakistan</option>${state.cities.map(c => `<option ${state.filters.city === c ? 'selected' : ''}>${c}</option>`).join('')}</select></div>
+    <div class="catgrid">${mainCats.map(([lbl, c]) => `<button class="catcell" onclick="setCat('${c}')"><span class="cico">${catIcon(c)}</span><span class="clbl">${lbl}</span></button>`).join('')}</div>
     <h2 class="section">Fresh recommendations</h2>
     <div class="grid" id="grid"><div class="empty"><span class="big">⏳</span>Loading...</div></div>`;
   loadListings();

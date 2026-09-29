@@ -8,6 +8,36 @@ const { DatabaseSync } = require('node:sqlite');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+const IS_PROD = process.env.NODE_ENV === 'production';
+
+// --- Security: session secret must come from environment ---
+if (IS_PROD && !process.env.SESSION_SECRET) {
+  console.error('FATAL: SESSION_SECRET env var is required in production');
+  process.exit(1);
+}
+const SESSION_SECRET = process.env.SESSION_SECRET || ('dev-only-' + Math.random().toString(36).slice(2));
+
+// --- Security headers ---
+app.use((req, res, next) => {
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'SAMEORIGIN');
+  res.setHeader('X-XSS-Protection', '1; mode=block');
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  next();
+});
+
+// --- Rate limiting for auth endpoints (brute-force protection) ---
+const loginAttempts = new Map();
+function rateLimit(req, res, next) {
+  const ip = req.ip || req.connection.remoteAddress;
+  const now = Date.now();
+  const rec = loginAttempts.get(ip) || { count: 0, reset: now + 15 * 60 * 1000 };
+  if (now > rec.reset) { rec.count = 0; rec.reset = now + 15 * 60 * 1000; }
+  rec.count++;
+  loginAttempts.set(ip, rec);
+  if (rec.count > 20) return res.status(429).json({ error: 'Too many attempts. Try again in 15 minutes.' });
+  next();
+}
 
 // --- Database ---
 const db = new DatabaseSync(path.join(__dirname, 'shopping_hub.db'));
@@ -41,10 +71,15 @@ db.exec(`
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(session({
-  secret: process.env.SESSION_SECRET || 'shopping-hub-secret-key-2026',
+  secret: SESSION_SECRET,
   resave: false,
   saveUninitialized: false,
-  cookie: { maxAge: 30 * 24 * 60 * 60 * 1000 }
+  cookie: {
+    httpOnly: true,
+    secure: IS_PROD,
+    sameSite: 'lax',
+    maxAge: 30 * 24 * 60 * 60 * 1000
+  }
 }));
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
@@ -73,7 +108,7 @@ const requireLogin = (req, res, next) => {
 };
 
 // --- Auth API ---
-app.post('/api/signup', (req, res) => {
+app.post('/api/signup', rateLimit, (req, res) => {
   const { name, email, password, phone } = req.body;
   if (!name || !email || !password) return res.status(400).json({ error: 'Name, email and password required' });
   try {
@@ -89,7 +124,7 @@ app.post('/api/signup', (req, res) => {
   }
 });
 
-app.post('/api/login', (req, res) => {
+app.post('/api/login', rateLimit, (req, res) => {
   const { email, password } = req.body;
   if (!email || !password) return res.status(400).json({ error: 'Email and password required' });
   const user = db.prepare('SELECT * FROM users WHERE email = ?').get(email.trim().toLowerCase());

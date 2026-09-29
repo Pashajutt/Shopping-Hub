@@ -466,9 +466,10 @@ function showChooseCat(sub) {
   let body;
   if (!sub) {
     body = `<h2 style="margin:16px 0">📢 What are you selling?</h2>
-      <div class="catgrid">${state.categories.map(g => `<button class="catcell" onclick="showChooseCat('${g.name}')"><span class="cico">${g.icon}</span><span class="clbl">${g.name}</span></button>`).join('')}</div>`;
+      <div class="catgrid">${state.categories.map((g, i) => `<button class="catcell" onclick="showChooseCat(${i})"><span class="cico">${g.icon}</span><span class="clbl">${g.name}</span></button>`).join('')}</div>`;
   } else {
-    const grp = state.categories.find(x => x.name === sub);
+    const grp = state.categories[Number(sub)];
+    if (!grp) return showChooseCat();
     body = `<div class="crumbs"><a onclick="showChooseCat()">← Categories</a> / ${grp.icon} ${grp.name}</div>
       <h2 style="margin:16px 0">${grp.icon} ${grp.name}</h2>
       <div class="catgrid">${grp.subs.map(s => `<button class="catcell" onclick="showPostAd('${s.replace(/'/g, "\\'")}')"><span class="cico">${catIcon(s)}</span><span class="clbl">${s}</span></button>`).join('')}</div>`;

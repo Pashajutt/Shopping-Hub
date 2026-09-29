@@ -48,16 +48,16 @@ async function showHome() {
   document.getElementById('main').innerHTML = `
     <div class="hero">
       <h1>Sell anything. <span class="hl">Find everything.</span></h1>
-      <p>Pakistan's friendliest marketplace — from Karachi to Khyber, your bazaar is now online. 🇵🇰</p>
+      <p>Pakistan's first truck-art marketplace — rang-biranga bazaar, ab online! 🇵🇰🚚</p>
       <div class="hero-cta">
         <button class="btn btn-sell" onclick="showPostAd()">📢 Post FREE Ad</button>
-        ${state.user ? '' : '<button class="btn btn-magenta" onclick="showAuth(\'signup\')">🚀 Join Free</button>'}
+        ${state.user ? '' : '<button class="btn btn-green" onclick="showAuth(\'signup\')">🚀 Join Free</button>'}
       </div>
     </div>
     <div class="filters">
       <select id="fCity" onchange="filterCity(this.value)"><option value="">📍 All Pakistan</option>${state.cities.map(c => `<option ${state.filters.city === c ? 'selected' : ''}>${c}</option>`).join('')}</select>
     </div>
-    <h2 class="section">Fresh Picks For You</h2>
+    <h2 class="section"><span class="dot"></span>Fresh Picks For You</h2>
     <div class="grid" id="grid"><div class="empty"><span class="big">⏳</span>Loading...</div></div>`;
   loadListings();
 }

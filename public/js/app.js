@@ -63,11 +63,11 @@ function setCat(c) { state.filters.category = c; renderCats(); loadListings(); }
 function goHome() { state.filters = {}; document.getElementById('searchInput').value = ''; renderCats(); showHome(); }
 function doSearch() { state.filters.q = document.getElementById('searchInput').value.trim(); loadListings(); }
 
-// ===== Contact info (Pasha will provide) =====
+// ===== Contact info =====
 const CONTACT = {
-  phone: '+920000000000',
-  phoneLabel: 'Call Us',
-  whatsapp: '920000000000',
+  phone: '+923002132209',
+  phoneLabel: '📞 +92 300 2132209',
+  whatsapp: '923002132209',
   facebook: '#',
   tiktok: '#'
 };

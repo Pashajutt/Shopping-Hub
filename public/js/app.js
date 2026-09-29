@@ -472,10 +472,14 @@ function showChooseCat(sub) {
     if (!grp) return showChooseCat();
     body = `<div class="crumbs"><a onclick="showChooseCat()">← Categories</a> / ${grp.icon} ${grp.name}</div>
       <h2 style="margin:16px 0">${grp.icon} ${grp.name}</h2>
-      <div class="catgrid">${grp.subs.map(s => `<button class="catcell" onclick="showPostAd('${s.replace(/'/g, "\\'")}')"><span class="cico">${catIcon(s)}</span><span class="clbl">${s}</span></button>`).join('')}</div>`;
+      <div class="catgrid">${grp.subs.map((s, si) => `<button class="catcell" onclick="showPostAdByIdx(${Number(sub)},${si})"><span class="cico">${catIcon(s)}</span><span class="clbl">${s}</span></button>`).join('')}</div>`;
   }
   document.getElementById('main').innerHTML = `<div style="max-width:640px;margin:0 auto">${body}</div>`;
   window.scrollTo(0, 0);
+}
+function showPostAdByIdx(gi, si) {
+  const grp = state.categories[gi];
+  if (grp && grp.subs[si]) showPostAd(grp.subs[si]);
 }
 function showPostAd(preCat) {
   if (!state.user) { showAuth('signup'); return; }

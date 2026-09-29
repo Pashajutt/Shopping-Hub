@@ -63,6 +63,14 @@ function setCat(c) { state.filters.category = c; renderCats(); loadListings(); }
 function goHome() { state.filters = {}; document.getElementById('searchInput').value = ''; renderCats(); showHome(); }
 function doSearch() { state.filters.q = document.getElementById('searchInput').value.trim(); loadListings(); }
 
+// ===== Contact info (Pasha will provide) =====
+const CONTACT = {
+  phone: '+920000000000',
+  phoneLabel: 'Call Us',
+  whatsapp: '920000000000',
+  facebook: '#',
+  tiktok: '#'
+};
 function navGo(v) {
   document.querySelectorAll('.bnav-item').forEach(b => b.classList.remove('active'));
   const map = { home: 'bn-home', chat: 'bn-chat', myads: 'bn-myads', account: 'bn-account' };
@@ -75,6 +83,25 @@ function navGo(v) {
 function showChat() {
   state.view = 'chat';
   document.getElementById('main').innerHTML = `<div class="empty"><span class="big">💬</span><b>Chat</b><br>Buyer-seller chat is coming soon! 🚀<br><span style="font-size:13px">For now, call the seller directly from any ad. 📞</span></div>`;
+  window.scrollTo(0, 0);
+}
+function showAbout() {
+  state.view = 'about';
+  document.getElementById('main').innerHTML = `<div class="form-card" style="max-width:640px">
+    <h2>ℹ️ About Shopping Hub</h2>
+    <div class="form-sub">Pakistan's own online marketplace 🇵🇰</div>
+    <p style="line-height:1.8;margin:16px 0">Shopping Hub is Pakistan's free classifieds platform where you can <b>buy and sell anything</b> — mobiles, cars, property, jobs and more. Posting ads is <b>100% FREE</b>!</p>
+    <h3 style="margin:20px 0 10px">📢 Advertise With Us</h3>
+    <p style="line-height:1.8;color:var(--muted)">Want to promote your brand or business on Shopping Hub? Contact us for banner ads and promotions:</p>
+    <div style="display:grid;gap:10px;margin-top:14px">
+      <a class="btn btn-teal" style="text-decoration:none;text-align:center" href="tel:${CONTACT.phone}">📞 ${CONTACT.phoneLabel}</a>
+      <a class="btn" style="text-decoration:none;text-align:center;background:#25D366;border-color:#25D366;color:#fff" href="https://wa.me/${CONTACT.whatsapp}" target="_blank">💬 WhatsApp</a>
+      <a class="btn" style="text-decoration:none;text-align:center" href="${CONTACT.facebook}" target="_blank">📘 Facebook</a>
+      <a class="btn" style="text-decoration:none;text-align:center" href="${CONTACT.tiktok}" target="_blank">🎵 TikTok</a>
+    </div>
+    <h3 style="margin:20px 0 10px">🛡️ Safety</h3>
+    <p style="line-height:1.8;color:var(--muted)">Always meet in public places, inspect items before paying, and never pay in advance.</p>
+  </div>`;
   window.scrollTo(0, 0);
 }
 function showAccount() {

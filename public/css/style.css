@@ -95,13 +95,16 @@ footer p{opacity:.75;font-size:14px;margin-top:8px}
 .bnav-sellbtn{width:58px;height:58px;border-radius:50%;border:none;cursor:pointer;font-size:28px;font-weight:800;color:var(--ink);background:conic-gradient(from 0deg,#ffce32,#4ecdc4,#ffce32);display:flex;align-items:center;justify-content:center;box-shadow:0 3px 10px rgba(0,0,0,.18);margin-top:-24px}
 .bnav-sellbtn:active{transform:scale(.94)}
 
-/* ===== Category icon grid (OLX app home) ===== */
+/* ===== Category icon grid (own style) ===== */
+.toptabs{display:flex;gap:10px;margin:6px 0 12px;overflow-x:auto;padding-bottom:4px}
+.toptab{flex:1;min-width:110px;border:2px solid var(--ink);background:#fff;border-radius:12px;padding:12px 8px;font-family:inherit;font-weight:700;font-size:14px;cursor:pointer;white-space:nowrap}
+.toptab.active{background:var(--ink);color:#fff}
 .catgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:18px 0}
 @media(min-width:700px){.catgrid{grid-template-columns:repeat(8,1fr)}}
-.catcell{border:none;background:none;cursor:pointer;font-family:inherit;display:flex;flex-direction:column;align-items:center;gap:7px;padding:6px 2px}
-.catcell .cico{width:64px;height:64px;border-radius:16px;background:#eef4f4;display:flex;align-items:center;justify-content:center;font-size:32px;transition:.15s}
-.catcell:hover .cico{background:#e0efef;transform:scale(1.06)}
-.catcell .clbl{font-size:12px;font-weight:600;color:var(--ink);text-align:center;line-height:1.25}
+.catcell{border:2px solid var(--ink);background:#fff;cursor:pointer;font-family:inherit;display:flex;flex-direction:column;align-items:center;gap:7px;padding:10px 4px;border-radius:16px;box-shadow:2px 2px 0 var(--ink)}
+.catcell .cico{width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,#fff3d6,#ffe1a8);display:flex;align-items:center;justify-content:center;font-size:30px;transition:.15s}
+.catcell:hover .cico{transform:scale(1.08) rotate(-4deg)}
+.catcell .clbl{font-size:12px;font-weight:700;color:var(--ink);text-align:center;line-height:1.25}
 .locbar{display:flex;align-items:center;gap:6px;font-weight:800;font-size:16px;margin:14px 0 4px;cursor:pointer}
 .locbar select{border:none;background:none;font-weight:800;font-size:16px;font-family:inherit;color:var(--ink);cursor:pointer;max-width:230px}
 .card{position:relative}

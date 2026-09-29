@@ -151,6 +151,11 @@ async function showHome() {
   document.querySelectorAll('.bnav-item').forEach(b => b.classList.remove('active'));
   document.getElementById('bn-home').classList.add('active');
   document.getElementById('main').innerHTML = `
+    <div class="toptabs">
+      <button class="toptab active" onclick="goHome()">🛍️ Shopping Hub</button>
+      <button class="toptab" onclick="setGroup('Vehicles')">🚗 Motors</button>
+      <button class="toptab" onclick="setGroup('Property')">🏠 Property</button>
+    </div>
     <div class="locbar">📍 <select onchange="filterCity(this.value)"><option value="">All Pakistan</option>${state.cities.map(c => `<option ${state.filters.city === c ? 'selected' : ''}>${c}</option>`).join('')}</select>
       <button class="btn" onclick="showFavs()" style="padding:8px 14px;font-size:13px">❤️ Favorites</button></div>
     <div class="filters">

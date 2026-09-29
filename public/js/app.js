@@ -31,11 +31,15 @@ function renderUserArea() {
 
 function renderCats() {
   const el = document.getElementById('catNav');
-  el.innerHTML = `<button class="${!state.filters.category ? 'active' : ''}" onclick="setCat('')">🌍 All</button>` +
-    state.categories.map(c => `<button class="${state.filters.category === c ? 'active' : ''}" onclick="setCat('${c}')">${catIcon(c)} ${c}</button>`).join('');
+  el.innerHTML = `<button class="${!state.filters.group ? 'active' : ''}" onclick="setGroup('')">🌍 All</button>` +
+    state.categories.map(g => `<button class="${state.filters.group === g.name ? 'active' : ''}" onclick="setGroup('${g.name}')">${g.icon} ${g.name}</button>`).join('');
 }
 
 function catIcon(c) {
+  if (state.categories && state.categories.find) {
+    const g = state.categories.find(x => x.name === c);
+    if (g) return g.icon;
+  }
   const icons = {
     'Mobiles': '📱', 'Tablets': '📲', 'Mobile Accessories': '🎧', 'Smart Watches': '⌚',
     'Cars': '🚗', 'Cars Accessories': '🔧', 'Spare Parts': '⚙️', 'Number Plates': '🔢',
@@ -59,7 +63,35 @@ function catIcon(c) {
   return icons[c] || '📦';
 }
 
-function setCat(c) { state.filters.category = c; renderCats(); loadListings(); }
+function setGroup(g) {
+  state.filters.group = g;
+  state.filters.category = '';
+  renderCats();
+  if (!g) { showHome(); return; }
+  const grp = state.categories.find(x => x.name === g);
+  if (!grp) { showHome(); return; }
+  state.view = 'group';
+  document.getElementById('main').innerHTML = `
+    <div class="crumbs"><a onclick="goHome()">🏠 Home</a> / ${grp.icon} ${grp.name}</div>
+    <h2 style="margin:16px 0">${grp.icon} ${grp.name}</h2>
+    <div class="catgrid">${grp.subs.map(s => `<button class="catcell" onclick="setCat('${s.replace(/'/g, "\\'")}')"><span class="cico">${catIcon(s)}</span><span class="clbl">${s}</span></button>`).join('')}</div>
+    <h2 class="section">All in ${grp.name}</h2>
+    <div class="grid" id="grid"><div class="empty"><span class="big">⏳</span>Loading...</div></div>`;
+  loadGroupListings(grp.subs);
+  window.scrollTo(0, 0);
+}
+async function loadGroupListings(subs) {
+  const all = [];
+  for (const s of subs) {
+    try { const list = await api('/api/listings?category=' + encodeURIComponent(s)); all.push(...list); } catch (e) {}
+  }
+  all.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+  state.listings = all;
+  const g = document.getElementById('grid');
+  if (!g) return;
+  g.innerHTML = all.length ? all.map(cardHTML).join('') : `<div class="empty"><span class="big">📭</span>No ads yet in this category — be the first to post! 🎉</div>`;
+}
+function setCat(c) { state.filters.category = c; state.filters.group = ''; renderCats(); showHome(); loadListings(); }
 function goHome() { state.filters = {}; document.getElementById('searchInput').value = ''; renderCats(); showHome(); }
 function doSearch() { state.filters.q = document.getElementById('searchInput').value.trim(); loadListings(); }
 
@@ -118,7 +150,6 @@ async function showHome() {
   state.view = 'home';
   document.querySelectorAll('.bnav-item').forEach(b => b.classList.remove('active'));
   document.getElementById('bn-home').classList.add('active');
-  const mainCats = [['Mobiles','Mobiles'],['Vehicles','Cars'],['Property For Sale','Property for Sale'],['Property For Rent','Property for Rent'],['Services','Services'],['Jobs','Jobs'],['Animals','Animals'],['Furniture & Home','Furniture & Home Decor']];
   document.getElementById('main').innerHTML = `
     <div class="locbar">📍 <select onchange="filterCity(this.value)"><option value="">All Pakistan</option>${state.cities.map(c => `<option ${state.filters.city === c ? 'selected' : ''}>${c}</option>`).join('')}</select>
       <button class="btn" onclick="showFavs()" style="padding:8px 14px;font-size:13px">❤️ Favorites</button></div>
@@ -132,7 +163,7 @@ async function showHome() {
         <option value="phl" ${state.filters.sort === 'phl' ? 'selected' : ''}>Price: High to Low</option>
       </select>
     </div>
-    <div class="catgrid">${mainCats.map(([lbl, c]) => `<button class="catcell" onclick="setCat('${c}')"><span class="cico">${catIcon(c)}</span><span class="clbl">${lbl}</span></button>`).join('')}</div>
+    <div class="catgrid">${state.categories.map(g => `<button class="catcell" onclick="setGroup('${g.name}')"><span class="cico">${g.icon}</span><span class="clbl">${g.name}</span></button>`).join('')}</div>
     <h2 class="section">Fresh recommendations</h2>
     <div class="grid" id="grid"><div class="empty"><span class="big">⏳</span>Loading...</div></div>`;
   loadListings();
@@ -399,7 +430,8 @@ function showPostAd() {
     <div class="form-sub">It's FREE and takes 1 minute!</div>
     <label>Title *</label><input id="adTitle" placeholder="e.g. iPhone 13 Pro Max — urgent sale">
     <label>Price (Rs) *</label><input id="adPrice" type="number" placeholder="e.g. 250000">
-    <label>Category *</label><select id="adCat" onchange="onCatChange()">${state.categories.map(c => `<option>${c}</option>`).join('')}</select>
+    <label>Category *</label><select id="adCatGroup" onchange="onCatGroupChange()">${state.categories.map(g => `<option value="${g.name}">${g.icon} ${g.name}</option>`).join('')}</select>
+    <label>Subcategory *</label><select id="adCat" onchange="onCatChange()"></select>
     <div id="mobilePicker" style="display:none">
       <label>Brand *</label><select id="adBrand" onchange="onBrandChange()"><option value="">-- Select Brand --</option>${Object.keys(MOBILE_BRANDS).map(b => `<option>${b}</option>`).join('')}</select>
       <label>Model *</label><select id="adModel" onchange="onModelChange()"><option value="">-- Select Model --</option></select>
@@ -415,8 +447,14 @@ function showPostAd() {
     <button class="btn btn-sell" onclick="doPostAd()">🚀 Publish Ad</button>
   </div>`;
   window.scrollTo(0, 0);
+  onCatGroupChange();
 }
 
+function onCatGroupChange() {
+  const g = state.categories.find(x => x.name === document.getElementById('adCatGroup').value);
+  document.getElementById('adCat').innerHTML = g ? g.subs.map(s => `<option>${s}</option>`).join('') : '';
+  onCatChange();
+}
 function onCatChange() {
   const show = document.getElementById('adCat').value === 'Mobiles';
   document.getElementById('mobilePicker').style.display = show ? 'block' : 'none';

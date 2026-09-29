@@ -47,17 +47,16 @@ async function showHome() {
   state.view = 'home';
   document.getElementById('main').innerHTML = `
     <div class="hero">
-      <h1>Sell anything. <span class="hl">Find everything.</span></h1>
-      <p>Pakistan's first truck-art marketplace — rang-biranga bazaar, ab online! 🇵🇰🚚</p>
+      <h1>Buy and sell <span class="hl">for free</span> anywhere in Pakistan</h1>
+      <p>From mobiles to cars to furniture — find amazing deals near you. 🇵🇰</p>
       <div class="hero-cta">
-        <button class="btn btn-sell" onclick="showPostAd()">📢 Post FREE Ad</button>
-        ${state.user ? '' : '<button class="btn btn-green" onclick="showAuth(\'signup\')">🚀 Join Free</button>'}
+        <button class="btn btn-sell" onclick="showPostAd()">+ SELL NOW</button>
       </div>
     </div>
     <div class="filters">
       <select id="fCity" onchange="filterCity(this.value)"><option value="">📍 All Pakistan</option>${state.cities.map(c => `<option ${state.filters.city === c ? 'selected' : ''}>${c}</option>`).join('')}</select>
     </div>
-    <h2 class="section"><span class="dot"></span>Fresh Picks For You</h2>
+    <h2 class="section">Fresh recommendations</h2>
     <div class="grid" id="grid"><div class="empty"><span class="big">⏳</span>Loading...</div></div>`;
   loadListings();
 }

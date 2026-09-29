@@ -111,13 +111,15 @@ app.get('/api/me', (req, res) => {
 
 // --- Listings API ---
 app.get('/api/listings', (req, res) => {
-  const { q, category, city, mine } = req.query;
+  const { q, category, city, mine, min, max } = req.query;
   let sql = `SELECT l.*, u.name AS seller_name FROM listings l JOIN users u ON l.user_id = u.id WHERE l.status = 'active'`;
   const params = [];
   if (mine === '1' && req.session.userId) { sql += ' AND l.user_id = ?'; params.push(req.session.userId); }
   if (q) { sql += ' AND (l.title LIKE ? OR l.description LIKE ?)'; params.push(`%${q}%`, `%${q}%`); }
   if (category) { sql += ' AND l.category = ?'; params.push(category); }
   if (city) { sql += ' AND l.city = ?'; params.push(city); }
+  if (min) { sql += ' AND l.price >= ?'; params.push(Number(min)); }
+  if (max) { sql += ' AND l.price <= ?'; params.push(Number(max)); }
   sql += ' ORDER BY l.created_at DESC LIMIT 200';
   const rows = db.prepare(sql).all(...params);
   res.json(rows.map(r => ({ ...r, images: JSON.parse(r.images || '[]') })));

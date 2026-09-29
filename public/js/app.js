@@ -88,7 +88,13 @@ async function showHome() {
   document.getElementById('bn-home').classList.add('active');
   const mainCats = [['Mobiles','Mobiles'],['Vehicles','Cars'],['Property For Sale','Property for Sale'],['Property For Rent','Property for Rent'],['Services','Services'],['Jobs','Jobs'],['Animals','Animals'],['Furniture & Home','Furniture & Home Decor']];
   document.getElementById('main').innerHTML = `
-    <div class="locbar">📍 <select onchange="filterCity(this.value)"><option value="">All Pakistan</option>${state.cities.map(c => `<option ${state.filters.city === c ? 'selected' : ''}>${c}</option>`).join('')}</select></div>
+    <div class="locbar">📍 <select onchange="filterCity(this.value)"><option value="">All Pakistan</option>${state.cities.map(c => `<option ${state.filters.city === c ? 'selected' : ''}>${c}</option>`).join('')}</select>
+      <button class="btn" onclick="showFavs()" style="padding:8px 14px;font-size:13px">❤️ Favorites</button></div>
+    <div class="filters">
+      <input type="number" id="fMin" placeholder="Min price" value="${state.filters.min || ''}" style="padding:10px;border:2px solid var(--ink);border-radius:8px;width:130px;font-family:inherit">
+      <input type="number" id="fMax" placeholder="Max price" value="${state.filters.max || ''}" style="padding:10px;border:2px solid var(--ink);border-radius:8px;width:130px;font-family:inherit">
+      <button class="btn btn-solid" onclick="filterPrice()" style="padding:10px 18px">Apply</button>
+    </div>
     <div class="catgrid">${mainCats.map(([lbl, c]) => `<button class="catcell" onclick="setCat('${c}')"><span class="cico">${catIcon(c)}</span><span class="clbl">${lbl}</span></button>`).join('')}</div>
     <h2 class="section">Fresh recommendations</h2>
     <div class="grid" id="grid"><div class="empty"><span class="big">⏳</span>Loading...</div></div>`;
@@ -96,12 +102,19 @@ async function showHome() {
 }
 
 function filterCity(v) { state.filters.city = v; loadListings(); }
+function filterPrice() {
+  state.filters.min = document.getElementById('fMin').value;
+  state.filters.max = document.getElementById('fMax').value;
+  loadListings();
+}
 
 async function loadListings() {
   const p = new URLSearchParams();
   if (state.filters.q) p.set('q', state.filters.q);
   if (state.filters.category) p.set('category', state.filters.category);
   if (state.filters.city) p.set('city', state.filters.city);
+  if (state.filters.min) p.set('min', state.filters.min);
+  if (state.filters.max) p.set('max', state.filters.max);
   const list = await api('/api/listings?' + p);
   state.listings = list;
   const g = document.getElementById('grid');
@@ -117,11 +130,29 @@ function fmtPrice(p) {
 }
 function cardHTML(l) {
   const img = l.images && l.images[0] ? `<img src="${l.images[0]}" loading="lazy">` : `<div class="noimg">📦</div>`;
-  return `<div class="card" onclick="showDetail(${l.id})">${img}
+  const fav = isFav(l.id) ? '❤️' : '🤍';
+  return `<div class="card" onclick="showDetail(${l.id})"><button class="favbtn" onclick="event.stopPropagation();toggleFav(${l.id})">${fav}</button>${img}
     <div class="card-body"><span class="tag">${catIcon(l.category)} ${esc(l.category)}</span>
     <div class="card-price">${fmtPrice(l.price)}</div>
     <div class="card-title">${esc(l.title)}</div>
     <div class="card-meta"><span>📍 ${esc(l.city)}</span><span>${timeAgo(l.created_at)}</span></div></div></div>`;
+}
+function getFavs() { try { return JSON.parse(localStorage.getItem('sh_favs') || '[]'); } catch { return []; } }
+function isFav(id) { return getFavs().includes(id); }
+function toggleFav(id) {
+  let f = getFavs();
+  f = f.includes(id) ? f.filter(x => x !== id) : [...f, id];
+  localStorage.setItem('sh_favs', JSON.stringify(f));
+  if (state.view === 'home') loadListings();
+  else if (state.view === 'favs') showFavs();
+  else showDetail(id);
+}
+function showFavs() {
+  state.view = 'favs';
+  const favs = state.listings.filter(l => isFav(l.id));
+  document.getElementById('main').innerHTML = `<h2 class="section">❤️ My Favorites</h2>
+    <div class="grid">${favs.length ? favs.map(cardHTML).join('') : `<div class="empty"><span class="big">🤍</span>No favorites yet.<br>Tap the heart on any ad to save it here!</div>`}</div>`;
+  window.scrollTo(0, 0);
 }
 
 async function showDetail(id) {
@@ -140,11 +171,23 @@ async function showDetail(id) {
       <div class="detail-meta">🕒 ${timeAgo(l.created_at)}</div>
       <div class="seller-box"><h3>🤝 Meet the Seller</h3>
         <div class="detail-meta">👤 ${esc(l.seller_name)}</div>
-        ${l.phone ? `<div class="detail-meta">📞 ${esc(l.phone)}</div>` : ''}
-        ${l.seller_phone && l.seller_phone !== l.phone ? `<div class="detail-meta">📞 ${esc(l.seller_phone)}</div>` : ''}
+        ${(l.phone || l.seller_phone) ? `<button class="btn btn-teal" id="phoneBtn" onclick="showPhone('${esc(l.phone || l.seller_phone)}')" style="width:100%;margin-top:8px">📞 Show Phone Number</button><div class="detail-meta" id="phoneNum" style="display:none;font-size:20px;font-weight:800;margin-top:10px;text-align:center"></div>` : ''}
+        <button class="btn" onclick="toggleFav(${l.id});event.stopPropagation()" style="width:100%;margin-top:10px">${isFav(l.id) ? '❤️ Saved in Favorites' : '🤍 Add to Favorites'}</button>
       </div>
-    </div></div>`;
+      <div class="safety-box"><h3>🛡️ Safety Tips</h3><ul>
+        <li>Meet in a public place</li>
+        <li>Check the item before paying</li>
+        <li>Never pay in advance</li>
+      </ul></div>
+    </div></div>
+    <h2 class="section">Related ads</h2>
+    <div class="grid">${state.listings.filter(x => x.id !== l.id && x.category === l.category).slice(0, 4).map(cardHTML).join('') || '<div class="empty">No related ads yet.</div>'}</div>`;
   window.scrollTo(0, 0);
+}
+function showPhone(p) {
+  document.getElementById('phoneNum').textContent = '📞 ' + p;
+  document.getElementById('phoneNum').style.display = 'block';
+  document.getElementById('phoneBtn').style.display = 'none';
 }
 
 /* ---- Auth with Login/Signup tabs ---- */

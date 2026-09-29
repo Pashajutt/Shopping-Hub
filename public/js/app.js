@@ -317,7 +317,6 @@ function showAuth(tab) {
     <label>Password</label><input id="suPass" type="password" placeholder="Choose a password">
     <div class="err" id="suErr"></div>
     <button class="btn btn-teal" onclick="doSignup()">🚀 Create Free Account</button>
-    <div class="form-sub" style="margin-top:10px">📲 Want faster login? Use the <b>Phone</b> tab for SMS OTP login!</div>
     <div style="text-align:center;margin:14px 0;color:var(--muted)">— or —</div>
     <button class="btn" onclick="signInWithGoogle()" style="background:#fff">🔵 Sign up with Google</button>`;
   document.getElementById('main').innerHTML = `
@@ -327,12 +326,10 @@ function showAuth(tab) {
     <div class="auth-switch">
       <button class="${t === 'login' ? 'on' : ''}" onclick="showAuth('login')">🔐 Login</button>
       <button class="${t === 'signup' ? 'on' : ''}" onclick="showAuth('signup')">📝 Sign Up</button>
-      <button class="${t === 'phone' ? 'on' : ''}" onclick="showAuth('phone')">📲 Phone</button>
     </div>
-    ${t === 'login' ? loginForm : t === 'phone' ? phoneForm : signupForm}
+    ${t === 'login' ? loginForm : signupForm}
   </div>`;
   window.scrollTo(0, 0);
-  if (t === 'phone') initPhoneAuth();
 }
 const phoneForm = `
   <div id="phoneStep1">

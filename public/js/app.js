@@ -37,19 +37,24 @@ function renderCats() {
 
 function catIcon(c) {
   const icons = {
-    'Mobiles': '📱', 'Tablets': '📲', 'Mobile Accessories': '🎧',
-    'Cars': '🚗', 'Cars Accessories': '🔧', 'Spare Parts': '⚙️',
-    'Buses, Vans & Trucks': '🚌', 'Rickshaw & Chingchi': '🛺', 'Boats': '⛵',
-    'Motorcycles': '🏍️', 'Scooters': '🛵', 'Bicycles': '🚲',
-    'Property for Sale': '🏠', 'Property for Rent': '🏘️',
+    'Mobiles': '📱', 'Tablets': '📲', 'Mobile Accessories': '🎧', 'Smart Watches': '⌚',
+    'Cars': '🚗', 'Cars Accessories': '🔧', 'Spare Parts': '⚙️', 'Number Plates': '🔢',
+    'Buses, Vans & Trucks': '🚌', 'Rickshaw & Chingchi': '🛺', 'Commercial Vehicles': '🚚', 'Boats': '⛵',
+    'Motorcycles': '🏍️', 'Motorcycle Accessories': '🪖', 'Scooters': '🛵', 'Bicycles': '🚲',
+    'Property for Sale': '🏠', 'Property for Rent': '🏘️', 'Property for Auction': '🔨', 'New Projects': '🏗️', 'Room for Rent': '🛏️',
     'Electronics': '💻', 'Home Appliances': '🧺', 'Computers & Laptops': '💻',
-    'TV & Audio': '📺', 'Cameras': '📷',
-    'Furniture & Home Decor': '🛋️', 'Fashion & Beauty': '💄',
-    'Clothes': '👗', 'Watches & Jewelry': '⌚',
-    'Animals': '🐾', 'Dogs & Cats': '🐱', 'Birds & Hens': '🐔',
+    'TV & Audio': '📺', 'Cameras': '📷', 'Games & Consoles': '🎮',
+    'Furniture & Home Decor': '🛋️', 'Bed & Bath': '🛁', 'Garden Items': '🌱',
+    'Fashion & Beauty': '💄', 'Clothes': '👗', 'Shoes': '👟', 'Bags & Wallets': '👜',
+    'Watches & Jewelry': '💍', 'Health & Beauty': '💅', 'Wedding': '💒', 'Moms & Kids': '🤱',
+    'Animals': '🐾', 'Dogs & Cats': '🐱', 'Birds & Hens': '🐔', 'Pets Accessories': '🦴',
     'Jobs': '💼', 'Services': '🛠️',
-    'Business & Industrial': '🏭', 'Agriculture': '🌾',
-    'Books, Sports & Hobbies': '📚', 'Kids & Babies': '🧸'
+    'Business & Industrial': '🏭', 'Business for Sale': '💰', 'Business Equipment': '🏗️', 'Agriculture': '🌾',
+    'Books, Sports & Hobbies': '📚', 'Sports & Outdoors': '⚽', 'Hobby & Collectibles': '🎨',
+    'Music Instruments': '🎸', 'Tickets & Vouchers': '🎫',
+    'Travel & Tours': '✈️', 'Accommodation': '🏨',
+    'Food': '🍔', 'Items for Swap': '🔄',
+    'Kids & Babies': '🧸', 'Everything Else': '📦'
   };
   return icons[c] || '📦';
 }
@@ -138,8 +143,10 @@ function fmtPrice(p) {
 function cardHTML(l) {
   const img = l.images && l.images[0] ? `<img src="${l.images[0]}" loading="lazy">` : `<div class="noimg">📦</div>`;
   const fav = isFav(l.id) ? '❤️' : '🤍';
+  const badge = l.seller_type === 'Dealer' ? `<span class="sbadge dealer">🏪 Dealer</span>` : `<span class="sbadge owner">👤 Owner</span>`;
+  const condTag = l.cond === 'New' ? `<span class="sbadge newc">✨ New</span>` : '';
   return `<div class="card" onclick="showDetail(${l.id})"><button class="favbtn" onclick="event.stopPropagation();toggleFav(${l.id})">${fav}</button>${img}
-    <div class="card-body"><span class="tag">${catIcon(l.category)} ${esc(l.category)}</span>
+    <div class="card-body"><div style="display:flex;gap:5px;margin-bottom:7px;flex-wrap:wrap">${badge}${condTag}</div>
     <div class="card-price">${fmtPrice(l.price)}</div>
     <div class="card-title">${esc(l.title)}</div>
     <div class="card-meta"><span>📍 ${esc(l.city)}</span><span>${timeAgo(l.created_at)}</span></div></div></div>`;
@@ -190,8 +197,10 @@ async function showDetail(id) {
         <button class="btn" onclick="reportAd(${l.id})" style="flex:1">🚩 Report</button>
       </div>
       <div class="seller-box"><h3>🤝 Meet the Seller</h3>
-        <div class="detail-meta">👤 ${esc(l.seller_name)}</div>
-        ${(l.phone || l.seller_phone) ? `<button class="btn btn-teal" id="phoneBtn" onclick="showPhone('${esc(l.phone || l.seller_phone)}')" style="width:100%;margin-top:8px">📞 Show Phone Number</button><div class="detail-meta" id="phoneNum" style="display:none;font-size:20px;font-weight:800;margin-top:10px;text-align:center"></div>` : ''}
+        <div class="detail-meta">👤 ${esc(l.seller_name)} ${l.seller_type === 'Dealer' ? '<span class="sbadge dealer">🏪 Verified Dealer</span>' : '<span class="sbadge owner">👤 Direct Owner</span>'}</div>
+        <div class="detail-meta">📦 Condition: <b>${esc(l.cond || 'Used')}</b></div>
+        ${(l.phone || l.seller_phone) ? `<button class="btn btn-teal" id="phoneBtn" onclick="showPhone('${esc(l.phone || l.seller_phone)}')" style="width:100%;margin-top:8px">📞 Show Phone Number</button><div class="detail-meta" id="phoneNum" style="display:none;font-size:20px;font-weight:800;margin-top:10px;text-align:center"></div>
+        <a class="btn" style="width:100%;margin-top:8px;background:#25D366;border-color:#25D366;color:#fff;text-decoration:none;text-align:center;display:block" href="https://wa.me/92${esc((l.phone || l.seller_phone).replace(/\D/g, '').replace(/^0/, ''))}" target="_blank">💬 WhatsApp</a>` : ''}
         <button class="btn" onclick="toggleFav(${l.id});event.stopPropagation()" style="width:100%;margin-top:10px">${isFav(l.id) ? '❤️ Saved in Favorites' : '🤍 Add to Favorites'}</button>
       </div>
       <div class="safety-box"><h3>🛡️ Safety Tips</h3><ul>
@@ -286,6 +295,8 @@ function showPostAd() {
       <label>Model *</label><select id="adModel" onchange="onModelChange()"><option value="">-- Select Model --</option></select>
     </div>
     <label>City *</label><select id="adCity">${state.cities.map(c => `<option>${c}</option>`).join('')}</select>
+    <label>Condition</label><select id="adCond"><option>Used</option><option>New</option></select>
+    <label>You are</label><select id="adSellerType"><option value="Owner">Direct Owner 👤</option><option value="Dealer">Dealer 🏪</option></select>
     <label>Area</label><input id="adArea" placeholder="e.g. DHA Phase 5">
     <label>Phone</label><input id="adPhone" placeholder="03xx-xxxxxxx">
     <label>Description</label><textarea id="adDesc" placeholder="Condition, features, reason for selling..."></textarea>
@@ -318,6 +329,7 @@ async function doPostAd() {
   fd.append('title', v('adTitle')); fd.append('price', v('adPrice'));
   fd.append('category', v('adCat')); fd.append('city', v('adCity'));
   fd.append('area', v('adArea')); fd.append('phone', v('adPhone')); fd.append('description', v('adDesc'));
+  fd.append('cond', v('adCond')); fd.append('seller_type', v('adSellerType'));
   for (const f of document.getElementById('adImgs').files) fd.append('images', f);
   try {
     const r = await fetch('/api/listings', { method: 'POST', body: fd });

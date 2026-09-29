@@ -62,6 +62,8 @@ db.exec(`
     phone TEXT,
     images TEXT DEFAULT '[]',
     status TEXT DEFAULT 'active',
+    cond TEXT DEFAULT 'Used',
+    seller_type TEXT DEFAULT 'Owner',
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id)
   );
@@ -169,12 +171,15 @@ app.get('/api/listings/:id', (req, res) => {
 });
 
 app.post('/api/listings', requireLogin, upload.array('images', 5), (req, res) => {
-  const { title, price, category, description, city, area, phone } = req.body;
+  const { title, price, category, description, city, area, phone, cond, seller_type } = req.body;
   if (!title || !price || !category || !city) return res.status(400).json({ error: 'Title, price, category and city required' });
   const images = (req.files || []).map(f => '/uploads/' + f.filename);
-  const r = db.prepare(`INSERT INTO listings (user_id, title, price, category, description, city, area, phone, images)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`)
-    .run(req.session.userId, title.trim(), parseInt(price), category, description || '', city, area || '', phone || '', JSON.stringify(images));
+  // Add new columns for older databases
+  try { db.exec("ALTER TABLE listings ADD COLUMN cond TEXT DEFAULT 'Used'"); } catch {}
+  try { db.exec("ALTER TABLE listings ADD COLUMN seller_type TEXT DEFAULT 'Owner'"); } catch {}
+  const r = db.prepare(`INSERT INTO listings (user_id, title, price, category, description, city, area, phone, images, cond, seller_type)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
+    .run(req.session.userId, title.trim(), parseInt(price), category, description || '', city, area || '', phone || '', JSON.stringify(images), cond || 'Used', seller_type || 'Owner');
   res.json({ ok: true, id: Number(r.lastInsertRowid) });
 });
 
@@ -192,35 +197,62 @@ const CATEGORIES = [
   'Mobiles',
   'Tablets',
   'Mobile Accessories',
+  'Smart Watches',
   'Cars',
   'Cars Accessories',
   'Spare Parts',
+  'Number Plates',
   'Buses, Vans & Trucks',
   'Rickshaw & Chingchi',
+  'Commercial Vehicles',
   'Boats',
   'Motorcycles',
+  'Motorcycle Accessories',
   'Scooters',
   'Bicycles',
   'Property for Sale',
   'Property for Rent',
+  'Property for Auction',
+  'New Projects',
+  'Room for Rent',
   'Electronics',
   'Home Appliances',
   'Computers & Laptops',
   'TV & Audio',
   'Cameras',
+  'Games & Consoles',
   'Furniture & Home Decor',
+  'Bed & Bath',
+  'Garden Items',
   'Fashion & Beauty',
   'Clothes',
+  'Shoes',
+  'Bags & Wallets',
   'Watches & Jewelry',
+  'Health & Beauty',
+  'Wedding',
+  'Moms & Kids',
   'Animals',
   'Dogs & Cats',
   'Birds & Hens',
+  'Pets Accessories',
   'Jobs',
   'Services',
   'Business & Industrial',
+  'Business for Sale',
+  'Business Equipment',
   'Agriculture',
   'Books, Sports & Hobbies',
-  'Kids & Babies'
+  'Sports & Outdoors',
+  'Hobby & Collectibles',
+  'Music Instruments',
+  'Tickets & Vouchers',
+  'Travel & Tours',
+  'Accommodation',
+  'Food',
+  'Items for Swap',
+  'Kids & Babies',
+  'Everything Else'
 ];
 app.get('/api/categories', (req, res) => res.json(CATEGORIES));
 

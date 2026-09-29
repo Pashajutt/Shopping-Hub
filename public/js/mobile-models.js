@@ -34,14 +34,14 @@ const MOBILE_BRANDS = {
 "Galaxy M02","Galaxy M11","Galaxy M12","Galaxy M13","Galaxy M14","Galaxy M15","Galaxy M21","Galaxy M31",
 "Galaxy M32","Galaxy M33","Galaxy M34","Galaxy M35","Galaxy M51","Galaxy M52",
 "Galaxy F02","Galaxy F12","Galaxy F13","Galaxy F14","Galaxy F22","Galaxy F23","Galaxy F34","Galaxy F54",
-"Galaxy J2","Galaxy J4","Galaxy J6","Galaxy J7","Galaxy J8","Galaxy Grand Prime"
+"Galaxy J2","Galaxy J4","Galaxy J6","Galaxy J7","Galaxy J8","Galaxy Grand Prime","Galaxy S26","Galaxy S26 Plus","Galaxy S26 Ultra","Galaxy A17","Galaxy A27","Galaxy A37","Galaxy A57","Galaxy M16","Galaxy M17","Galaxy M36","Galaxy M56","Galaxy F16","Galaxy F17","Galaxy F36","Galaxy F56","Galaxy XCover 6","Galaxy XCover 7","Galaxy Quantum 2","Galaxy Buddy 2","Galaxy Wide 6","Galaxy Jump 3","Galaxy S23 Tactical","Galaxy Z Fold SE","Galaxy Z Flip FE"
 ],
 "Xiaomi": [
 "Mi 8","Mi 9","Mi 10","Mi 11","Mi 11 Lite","Mi 11 Ultra","Mi 12","Mi 12 Pro","Mi 13","Mi 13 Pro",
 "Mi 14","Mi 14 Pro","Mi 14 Ultra","Mi 15","Mi 15 Pro","Mi 15 Ultra",
 "Xiaomi 12T","Xiaomi 12T Pro","Xiaomi 13T","Xiaomi 13T Pro","Xiaomi 14T","Xiaomi 14T Pro",
 "Xiaomi Civi","Xiaomi Civi 2","Xiaomi Civi 3",
-"Mi A1","Mi A2","Mi A3","Mi Note 10","Mi Mix 3","Mi Mix 4"
+"Mi A1","Mi A2","Mi A3","Mi Note 10","Mi Mix 3","Mi Mix 4","Xiaomi 15T","Xiaomi 15T Pro","Redmi Note 15","Redmi Note 15 Pro","Redmi 15","Redmi 15C 5G","POCO X7 Neo","POCO F7 Pro","POCO F7 Ultra","POCO M7 Pro","POCO C85"
 ],
 "Redmi": [
 "Redmi 7","Redmi 7A","Redmi 8","Redmi 8A","Redmi 9","Redmi 9A","Redmi 9C","Redmi 9T",
@@ -68,7 +68,7 @@ const MOBILE_BRANDS = {
 "Realme C33","Realme C35","Realme C51","Realme C53","Realme C55","Realme C61","Realme C63","Realme C65","Realme C67","Realme C75",
 "Realme GT","Realme GT 2","Realme GT 2 Pro","Realme GT 3","Realme GT 5","Realme GT 6","Realme GT 6T","Realme GT 7",
 "Realme Narzo 10","Realme Narzo 20","Realme Narzo 30","Realme Narzo 50","Realme Narzo 60","Realme Narzo 70",
-"Realme X","Realme X2","Realme X2 Pro","Realme X3","Realme X7","Realme XT","Realme 3","Realme 3 Pro"
+"Realme X","Realme X2","Realme X2 Pro","Realme X3","Realme X7","Realme XT","Realme 3","Realme 3 Pro","Realme 14T","Realme 15","Realme 15 Pro","Realme P3","Realme P3 Pro","Realme P3 Ultra","Realme C71","Realme C73","Realme C85","Realme Note 60","Realme Note 70","Realme GT 7 Pro","Realme GT 8","Realme 13 Plus"
 ],
 "Oppo": [
 "Oppo A3s","Oppo A5","Oppo A5s","Oppo A9","Oppo A12","Oppo A15","Oppo A16","Oppo A17","Oppo A18",
@@ -78,7 +78,7 @@ const MOBILE_BRANDS = {
 "Oppo Reno","Oppo Reno 2","Oppo Reno 3","Reno 4","Oppo Reno 5","Oppo Reno 6","Oppo Reno 7","Oppo Reno 8","Oppo Reno 8T",
 "Oppo Reno 10","Oppo Reno 11","Oppo Reno 11 Pro","Oppo Reno 12","Oppo Reno 12 Pro","Oppo Reno 13","Oppo Reno 13 Pro",
 "Oppo Find X2","Oppo Find X3","Oppo Find X5","Oppo Find X6","Oppo Find X7","Oppo Find X8","Oppo Find N","Oppo Find N2","Oppo Find N3",
-"Oppo K10","Oppo K11","Oppo K12"
+"Oppo K10","Oppo K11","Oppo K12","Oppo A3","Oppo A5 Pro","Oppo A18e","Oppo A38x","Oppo A40","Oppo A40m","Oppo A60x","Oppo A79x","Oppo A83","Oppo A91","Oppo F29","Oppo F29 Pro","Oppo Reno 14","Oppo Reno 14 Pro","Oppo Reno 13F","Oppo Find X9","Oppo Find X9 Pro","Oppo K13","Oppo K13x","Oppo Pad Neo"
 ],
 "Vivo": [
 "Vivo Y11","Vivo Y12","Vivo Y12s","Vivo Y15","Vivo Y15s","Vivo Y16","Vivo Y17","Vivo Y17s","Vivo Y19","Vivo Y20",
@@ -86,7 +86,7 @@ const MOBILE_BRANDS = {
 "Vivo V15","Vivo V17","Vivo V19","Vivo V20","Vivo V20 SE","Vivo V21","Vivo V21e","Vivo V23","Vivo V23e","Vivo V25","Vivo V25e",
 "Vivo V27","Vivo V27e","Vivo V29","Vivo V29e","Vivo V30","Vivo V30e","Vivo V40","Vivo V40e","Vivo V50","Vivo V50e",
 "Vivo X50","Vivo X60","Vivo X70","Vivo X80","Vivo X90","Vivo X100","Vivo X100 Pro","Vivo X200","Vivo X200 Pro",
-"Vivo S1","Vivo S1 Pro","Vivo T1","Vivo T2","Vivo T3","Vivo iQOO 3","Vivo iQOO 7","Vivo iQOO 9","iQOO 11","iQOO 12","iQOO Neo 6","iQOO Neo 7","iQOO Z6","iQOO Z7","iQOO Z9"
+"Vivo S1","Vivo S1 Pro","Vivo T1","Vivo T2","Vivo T3","Vivo iQOO 3","Vivo iQOO 7","Vivo iQOO 9","iQOO 11","iQOO 12","iQOO Neo 6","iQOO Neo 7","iQOO Z6","iQOO Z7","iQOO Z9","Vivo Y04","Vivo Y18e","Vivo Y19s","Vivo Y29","Vivo Y39","Vivo V40 Lite","Vivo V50 Lite","Vivo X200 FE","Vivo X300","Vivo T4","Vivo T4x","Vivo Y58","Vivo Y200","Vivo Y200e","Vivo V31","iQOO Z10","iQOO Neo 10","iQOO 13"
 ],
 "OnePlus": [
 "OnePlus 3","OnePlus 3T","OnePlus 5","OnePlus 5T","OnePlus 6","OnePlus 6T",
@@ -98,7 +98,7 @@ const MOBILE_BRANDS = {
 "OnePlus 12","OnePlus 12R","OnePlus 13","OnePlus 13R",
 "OnePlus Nord","OnePlus Nord 2","OnePlus Nord 2T","OnePlus Nord 3","OnePlus Nord 4",
 "OnePlus Nord CE","OnePlus Nord CE 2","OnePlus Nord CE 3","OnePlus Nord CE 4",
-"OnePlus Open"
+"OnePlus Open","OnePlus 13s","OnePlus 14","OnePlus Nord 5","OnePlus Nord CE 5","OnePlus Pad 2"
 ],
 "Huawei": [
 "Huawei P8","Huawei P9","Huawei P10","Huawei P20","Huawei P20 Pro","Huawei P30","Huawei P30 Pro",
@@ -112,7 +112,7 @@ const MOBILE_BRANDS = {
 "Honor 8X","Honor 9X","Honor 9 Lite","Honor 10 Lite","Honor 20","Honor 50","Honor 50 Lite",
 "Honor 70","Honor 90","Honor 90 Lite","Honor 100","Honor 200","Honor 200 Pro","Honor 400","Honor 400 Pro",
 "Honor X6","Honor X7","Honor X8","Honor X8a","Honor X9","Honor X9a","Honor X9b","Honor Magic 5","Honor Magic 6","Honor Magic 7",
-"Honor View 20"
+"Honor View 20","Honor 400 Lite","Honor 500","Honor GT Pro","Honor X6c","Honor X7c","Honor X8c","Honor X9c","Honor Magic 8","Honor Magic V5","Honor Power"
 ],
 "Google Pixel": [
 "Pixel 2","Pixel 2 XL","Pixel 3","Pixel 3 XL","Pixel 3a","Pixel 4","Pixel 4 XL","Pixel 4a","Pixel 4a 5G",
@@ -121,20 +121,20 @@ const MOBILE_BRANDS = {
 "Pixel 8","Pixel 8 Pro","Pixel 8a",
 "Pixel 9","Pixel 9 Pro","Pixel 9 Pro XL","Pixel 9a",
 "Pixel 10","Pixel 10 Pro","Pixel 10 Pro XL",
-"Pixel Fold","Pixel 9 Pro Fold"
+"Pixel Fold","Pixel 9 Pro Fold","Pixel 10 Pro Fold"
 ],
 "Motorola": [
 "Moto G4","Moto G5","Moto G6","Moto G7","Moto G8","Moto G9","Moto G10","Moto G20","Moto G30","Moto G40","Moto G50",
 "Moto G60","Moto G71","Moto G72","Moto G73","Moto G82","Moto G84","Moto G85","Moto G86",
 "Moto E7","Moto E13","Moto E14","Moto E22","Moto E32",
 "Moto Edge","Moto Edge 20","Moto Edge 30","Moto Edge 40","Moto Edge 40 Neo","Moto Edge 50","Moto Edge 50 Pro","Moto Edge 50 Fusion",
-"Moto Razr","Moto Razr 40","Moto Razr 50"
+"Moto Razr","Moto Razr 40","Moto Razr 50","Moto G Stylus 2025","Moto G Power 2025","Moto G 2025","Moto Edge 60","Moto Edge 60 Pro","Moto Edge 60 Fusion","Moto Razr 60","Moto Razr 60 Ultra","Moto E15"
 ],
 "Nokia": [
 "Nokia 2","Nokia 2.4","Nokia 3","Nokia 3.4","Nokia 5","Nokia 5.4","Nokia 6","Nokia 6.1","Nokia 7 Plus",
 "Nokia 8","Nokia 8.1","Nokia 8.3","Nokia G10","Nokia G11","Nokia G20","Nokia G21","Nokia G42","Nokia G60",
 "Nokia C1","Nokia C2","Nokia C10","Nokia C20","Nokia C21","Nokia C22","Nokia C30","Nokia C31",
-"Nokia X10","Nokia X20","Nokia X30","Nokia XR20","Nokia 3310 (2017)","Nokia 105","Nokia 106","Nokia 225"
+"Nokia X10","Nokia X20","Nokia X30","Nokia XR20","Nokia 3310 (2017)","Nokia 105","Nokia 106","Nokia 225","Nokia 110 4G","Nokia 125","Nokia 215 4G","Nokia 225 4G","Nokia 2660 Flip","Nokia 3210","Nokia 6310","HMD Crest","HMD Crest Max","HMD Vibe","HMD Pulse","HMD Skyline","HMD Fusion"
 ],
 "Infinix": [
 "Infinix Hot 8","Infinix Hot 9","Infinix Hot 10","Infinix Hot 10s","Infinix Hot 11","Infinix Hot 11s",
@@ -144,7 +144,7 @@ const MOBILE_BRANDS = {
 "Infinix Note 12","Infinix Note 12 Pro","Infinix Note 30","Infinix Note 30 Pro","Infinix Note 40","Infinix Note 40 Pro",
 "Infinix Smart 5","Infinix Smart 6","Infinix Smart 7","Infinix Smart 8","Infinix Smart 9",
 "Infinix Zero 5G","Infinix Zero X Pro","Infinix Zero 20","Infinix Zero 30","Infinix Zero 40",
-"Infinix GT 10 Pro","Infinix GT 20 Pro"
+"Infinix GT 10 Pro","Infinix GT 20 Pro","Infinix Hot 50 Pro Plus","Infinix Hot 60","Infinix Hot 60i","Infinix Hot 60 Pro","Infinix Note 50","Infinix Note 50 Pro","Infinix Note 50s","Infinix Smart 10","Infinix GT 30 Pro","Infinix Zero Flip"
 ],
 "Tecno": [
 "Tecno Spark 7","Tecno Spark 7 Pro","Tecno Spark 8","Tecno Spark 8C","Tecno Spark 9","Tecno Spark 10","Tecno Spark 10 Pro",
@@ -153,19 +153,19 @@ const MOBILE_BRANDS = {
 "Tecno Camon 20","Tecno Camon 20 Pro","Tecno Camon 30","Tecno Camon 30 Pro","Tecno Camon 40",
 "Tecno Pova","Tecno Pova 2","Tecno Pova 3","Tecno Pova 4","Tecno Pova 5","Tecno Pova 6",
 "Tecno Phantom X","Tecno Phantom X2","Tecno Phantom V Fold",
-"Tecno Pop 5","Tecno Pop 6","Tecno Pop 7","Tecno Pop 8"
+"Tecno Pop 5","Tecno Pop 6","Tecno Pop 7","Tecno Pop 8","Tecno Spark 30","Tecno Spark 30C","Tecno Spark 40","Tecno Camon 40 Pro","Tecno Camon 40 Premier","Tecno Pova 7","Tecno Pova Curve","Tecno Phantom V Fold 2","Tecno Phantom V Flip 2","Tecno Pop 9","Tecno Pop 10"
 ],
 "Itel": [
 "Itel A26","Itel A48","Itel A49","Itel A60","Itel A60s","Itel A70",
 "Itel S16","Itel S17","Itel S18","Itel S23","Itel S24",
 "Itel P36","Itel P37","Itel P38","Itel P40","Itel P55","Itel P65",
-"Itel Vision 1","Itel Vision 2","Itel Vision 3"
+"Itel Vision 1","Itel Vision 2","Itel Vision 3","Itel A50","Itel A50C","Itel A80","Itel S25","Itel S25 Ultra","Itel P55 Plus","Itel P65L","Itel City 100","Itel Super 26 Ultra","Itel VistaTab 30"
 ],
 "Sony": [
 "Xperia XZ","Xperia XZ1","Xperia XZ2","Xperia XZ3","Xperia 1","Xperia 1 II","Xperia 1 III","Xperia 1 IV","Xperia 1 V","Xperia 1 VI",
 "Xperia 5","Xperia 5 II","Xperia 5 III","Xperia 5 IV","Xperia 5 V",
 "Xperia 10","Xperia 10 II","Xperia 10 III","Xperia 10 IV","Xperia 10 V","Xperia 10 VI",
-"Xperia L4","Xperia Ace III"
+"Xperia L4","Xperia Ace III","Xperia 1 VII","Xperia 5 VI","Xperia 10 VII","Xperia Pro-I","Xperia Pro"
 ],
 "Asus": [
 "ROG Phone 3","ROG Phone 5","ROG Phone 5s","ROG Phone 6","ROG Phone 6 Pro","ROG Phone 7","ROG Phone 8","ROG Phone 9",

@@ -423,8 +423,25 @@ async function verifyPhoneOtp() {
 
 async function logout() { await api('/api/logout', { method: 'POST' }); state.user = null; renderUserArea(); showHome(); }
 
-function showPostAd() {
+function showChooseCat(sub) {
+  state.view = 'choosecat';
+  let body;
+  if (!sub) {
+    body = `<h2 style="margin:16px 0">📢 What are you selling?</h2>
+      <div class="catgrid">${state.categories.map(g => `<button class="catcell" onclick="showChooseCat('${g.name}')"><span class="cico">${g.icon}</span><span class="clbl">${g.name}</span></button>`).join('')}</div>`;
+  } else {
+    const grp = state.categories.find(x => x.name === sub);
+    body = `<div class="crumbs"><a onclick="showChooseCat()">← Categories</a> / ${grp.icon} ${grp.name}</div>
+      <h2 style="margin:16px 0">${grp.icon} ${grp.name}</h2>
+      <div class="catgrid">${grp.subs.map(s => `<button class="catcell" onclick="showPostAd('${s.replace(/'/g, "\\'")}')"><span class="cico">${catIcon(s)}</span><span class="clbl">${s}</span></button>`).join('')}</div>`;
+  }
+  document.getElementById('main').innerHTML = `<div style="max-width:640px;margin:0 auto">${body}</div>`;
+  window.scrollTo(0, 0);
+}
+function showPostAd(preCat) {
   if (!state.user) { showAuth('signup'); return; }
+  // Step 1: choose category first (like OLX)
+  if (!preCat) return showChooseCat();
   document.getElementById('main').innerHTML = `
   <div class="form-card"><h2>📢 Post Your Ad</h2>
     <div class="form-sub">It's FREE and takes 1 minute!</div>
@@ -447,7 +464,18 @@ function showPostAd() {
     <button class="btn btn-sell" onclick="doPostAd()">🚀 Publish Ad</button>
   </div>`;
   window.scrollTo(0, 0);
+  // Pre-select the chosen category
+  if (preCat) {
+    for (const g of state.categories) {
+      if (g.subs.includes(preCat)) {
+        document.getElementById('adCatGroup').value = g.name;
+        break;
+      }
+    }
+  }
   onCatGroupChange();
+  if (preCat) document.getElementById('adCat').value = preCat;
+  onCatChange();
 }
 
 function onCatGroupChange() {

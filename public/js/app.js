@@ -367,16 +367,14 @@ function showForgot() {
   document.getElementById('main').innerHTML = `
   <div class="form-card">
     <h2>🔑 Forgot Password</h2>
-    <div class="form-sub">Verify your phone via SMS, then set a new password</div>
+    <div class="form-sub">We'll email you a reset code</div>
     <div id="fpStep1">
-      <label>Mobile Number</label>
-      <div style="display:flex;gap:8px"><input value="+92" disabled style="width:60px;text-align:center"><input id="fpNum" placeholder="3001234567" inputmode="numeric" style="flex:1"></div>
-      <div id="recaptcha-fp" style="margin:12px 0"></div>
+      <label>Email</label><input id="fpEmail" type="email" placeholder="you@example.com">
       <div class="err" id="fpErr"></div>
-      <button class="btn btn-teal" onclick="sendFpOtp()">📲 Send SMS Code</button>
+      <button class="btn btn-teal" onclick="sendFpOtp()">📧 Send Reset Code</button>
     </div>
     <div id="fpStep2" style="display:none">
-      <label>SMS Code *</label><input id="fpOtp" placeholder="6-digit SMS code" maxlength="6" inputmode="numeric">
+      <label>Email Code *</label><input id="fpOtp" placeholder="6-digit email code" maxlength="6" inputmode="numeric">
       <label>New Password</label><input id="fpPass" type="password" placeholder="New password (min 6 chars)">
       <div class="err" id="fpErr2"></div>
       <button class="btn btn-solid" onclick="doFpReset()">✅ Reset Password</button>
@@ -384,31 +382,20 @@ function showForgot() {
     <div class="form-link"><a onclick="showAuth('login')">← Back to Login</a></div>
   </div>`;
   window.scrollTo(0, 0);
-  initFpRecaptcha();
 }
 
-let _fpConfirm = null;
-function initFpRecaptcha() {
-  if (!FIREBASE_READY) { document.getElementById('fpErr').textContent = 'Phone reset not configured yet.'; return; }
-  try {
-    _fbApp = firebase.apps.length ? firebase.app() : firebase.initializeApp(FIREBASE_CONFIG);
-    window._recaptchaFp = new firebase.auth.RecaptchaVerifier('recaptcha-fp', { size: 'normal' });
-  } catch (e) { document.getElementById('fpErr').textContent = 'Init failed: ' + e.message; }
-}
 async function sendFpOtp() {
-  const num = '+92' + v('fpNum').replace(/\D/g, '').replace(/^0/, '');
-  if (num.length < 13) { document.getElementById('fpErr').textContent = 'Enter a valid mobile number'; return; }
+  const email = v('fpEmail').trim();
+  if (!email || !email.includes('@')) { document.getElementById('fpErr').textContent = 'Enter a valid email'; return; }
   try {
-    _fpConfirm = await _fbApp.auth().signInWithPhoneNumber(num, window._recaptchaFp);
+    await api('/api/auth/send-otp', { method: 'POST', body: JSON.stringify({ email, purpose: 'reset' }) });
     document.getElementById('fpStep1').style.display = 'none';
     document.getElementById('fpStep2').style.display = 'block';
   } catch (e) { document.getElementById('fpErr').textContent = e.message; }
 }
 async function doFpReset() {
   try {
-    const cred = await _fpConfirm.confirm(v('fpOtp'));
-    const token = await cred.user.getIdToken();
-    await api('/api/auth/reset-password-phone', { method: 'POST', body: JSON.stringify({ token, newPassword: v('fpPass') }) });
+    await api('/api/auth/reset-password', { method: 'POST', body: JSON.stringify({ email: v('fpEmail').trim(), otp: v('fpOtp').trim(), newPassword: v('fpPass') }) });
     alert('Password reset! Please login ✅');
     showAuth('login');
   } catch (e) { document.getElementById('fpErr2').textContent = e.message || 'Reset failed'; }
@@ -478,13 +465,12 @@ function showChooseCat(sub) {
   window.scrollTo(0, 0);
 }
 function showPostAdByIdx(gi, si) {
-  const grp = state.categories[gi];
-  if (grp && grp.subs[si]) showPostAd(grp.subs[si]);
+  showPostAd(null, gi, si);
 }
-function showPostAd(preCat) {
+function showPostAd(preCat, preGi, preSi) {
   if (!state.user) { showAuth('signup'); return; }
   // Step 1: choose category first (like OLX)
-  if (!preCat) return showChooseCat();
+  if (!preCat && (preGi === undefined || preGi === null)) return showChooseCat();
   document.getElementById('main').innerHTML = `
   <div class="form-card"><h2>📢 Post Your Ad</h2>
     <div class="form-sub">It's FREE and takes 1 minute!</div>
@@ -507,22 +493,32 @@ function showPostAd(preCat) {
     <button class="btn btn-sell" onclick="doPostAd()">🚀 Publish Ad</button>
   </div>`;
   window.scrollTo(0, 0);
-  // Pre-select the chosen category
-  if (preCat) {
-    for (const g of state.categories) {
-      if (g.subs.includes(preCat)) {
-        document.getElementById('adCatGroup').value = g.name;
+  // Pre-select the chosen category (by index — reliable)
+  if (preGi !== undefined && preGi !== null && state.categories[preGi]) {
+    document.getElementById('adCatGroup').selectedIndex = Number(preGi);
+  } else if (preCat) {
+    for (let i = 0; i < state.categories.length; i++) {
+      if (state.categories[i].subs.includes(preCat)) {
+        document.getElementById('adCatGroup').selectedIndex = i;
         break;
       }
     }
   }
   onCatGroupChange();
-  if (preCat) document.getElementById('adCat').value = preCat;
+  if (preSi !== undefined && preSi !== null) {
+    document.getElementById('adCat').selectedIndex = Number(preSi);
+  } else if (preCat) {
+    const opts = document.getElementById('adCat').options;
+    for (let i = 0; i < opts.length; i++) {
+      if (opts[i].text === preCat) { opts[i].selected = true; break; }
+    }
+  }
   onCatChange();
 }
 
 function onCatGroupChange() {
-  const g = state.categories.find(x => x.name === document.getElementById('adCatGroup').value);
+  const sel = document.getElementById('adCatGroup');
+  const g = state.categories[sel.selectedIndex];
   document.getElementById('adCat').innerHTML = g ? g.subs.map(s => `<option>${s}</option>`).join('') : '';
   onCatChange();
 }

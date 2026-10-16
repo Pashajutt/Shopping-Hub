@@ -153,8 +153,9 @@ async function showHome() {
   document.getElementById('main').innerHTML = `
     <div class="toptabs">
       <button class="toptab active" onclick="goHome()">🛍️ Shopping Hub</button>
+      <button class="toptab" onclick="setGroup('Mobiles')">📱 Mobiles</button>
+      <button class="toptab" onclick="setGroup('Electronics')">💻 Electronics</button>
       <button class="toptab" onclick="setGroup('Vehicles')">🚗 Motors</button>
-      <button class="toptab" onclick="setGroup('Property')">🏠 Property</button>
     </div>
     <div class="locbar">📍 <select onchange="filterCity(this.value)"><option value="">All Pakistan</option>${state.cities.map(c => `<option ${state.filters.city === c ? 'selected' : ''}>${c}</option>`).join('')}</select>
       <button class="btn" onclick="showFavs()" style="padding:8px 14px;font-size:13px">❤️ Favorites</button></div>
@@ -451,7 +452,7 @@ async function logout() { await api('/api/logout', { method: 'POST' }); state.us
 function showChooseCat(sub) {
   state.view = 'choosecat';
   let body;
-  if (!sub) {
+  if (sub === undefined || sub === null || sub === '') {
     body = `<h2 style="margin:16px 0">📢 What are you selling?</h2>
       <div class="catgrid">${state.categories.map((g, i) => `<button class="catcell" onclick="showChooseCat(${i})"><span class="cico">${g.icon}</span><span class="clbl">${g.name}</span></button>`).join('')}</div>`;
   } else {
